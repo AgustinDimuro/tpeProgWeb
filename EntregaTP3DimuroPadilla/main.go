@@ -38,6 +38,25 @@ func reservationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func reservationsHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		getAllReservations(w, r)
+	default:
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+	}
+}
+
+func getAllReservations(w http.ResponseWriter, r *http.Request) {
+	reservations, err := dbQueries.ListReservations(ctx)
+	if err != nil {
+		http.Error(w, "Error al obtener las reservas", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(reservations)
+}
+
 func deleteReservation(w http.ResponseWriter, r *http.Request, cabin_id, fecha string) {
 	fechaParsed, err := time.Parse("2006-01-02", fecha)
 	if err != nil {
@@ -209,37 +228,39 @@ func main() {
 		log.Fatal("Error creando reservation:", err)
 	}
 	fmt.Printf("Reservation creada: %+v\n", res)
-	/*
-		// 3. Listar todas las cabins
-		cabins, err := queries.ListCabins(ctx)
-		if err != nil {
-			log.Fatal("Error listando cabins:", err)
-		}
-		fmt.Println("Todas las cabins:")
-		for _, c := range cabins {
-			fmt.Printf(" - %+v\n", c)
-		}
 
-		// 4. Listar todas las reservations
-		reservations, err := queries.ListReservations(ctx)
-		if err != nil {
-			log.Fatal("Error listando reservations:", err)
-		}
-		fmt.Println("Todas las reservations:")
-		for _, r := range reservations {
-			fmt.Printf(" - %+v\n", r)
-		}
+	// 3. Listar todas las cabins
+	cabins, err := queries.ListCabins(ctx)
+	if err != nil {
+		log.Fatal("Error listando cabins:", err)
+	}
+	fmt.Println("Todas las cabins:")
+	for _, c := range cabins {
+		fmt.Printf(" - %+v\n", c)
+	}
 
-		// 5. Probar disponibilidad de fecha
-		fecha := time.Now().AddDate(0, 0, 7)
-		disponible, err := queries.IsFechaDisponible(ctx, fecha)
-		if err != nil {
-			log.Fatal("Error verificando disponibilidad:", err)
-		}
-		fmt.Printf("¿Fecha %s disponible?: %v\n", fecha.Format("2006-01-02"), disponible)
-	*/
-	http.HandleFunc("/reservations", reservationHandler)
-	//http.HandleFunc("/cabins", cabinHandler)
+	// 4. Listar todas las reservations
+	reservations, err := queries.ListReservations(ctx)
+	if err != nil {
+		log.Fatal("Error listando reservations:", err)
+	}
+	fmt.Println("Todas las reservations:")
+	for _, r := range reservations {
+		fmt.Printf(" - %+v\n", r)
+	}
+
+	// 5. Probar disponibilidad de fecha
+	fecha := time.Now().AddDate(0, 0, 7)
+	disponible, err := queries.IsFechaDisponible(ctx, fecha)
+	if err != nil {
+		log.Fatal("Error verificando disponibilidad:", err)
+	}
+	fmt.Printf("¿Fecha %s disponible?: %v\n", fecha.Format("2006-01-02"), disponible)
+
+	http.HandleFunc("/reservation", reservationHandler)
+	http.HandleFunc("/reservations", reservationsHandler)
+
+	http.HandleFunc("/cabin", cabinHandler)
 
 	port := ":8080"
 	fmt.Printf("Servidor escuchando en http://localhost%s\n", port)
