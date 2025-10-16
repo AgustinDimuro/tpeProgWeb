@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Reservar Quincho</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    // Renderiza un calendario básico del mes actual
+    document.addEventListener("DOMContentLoaded", () => {
+      const calendario = document.getElementById("calendario");
+      const hoy = new Date();
+      const mes = hoy.getMonth();
+      const anio = hoy.getFullYear();
+
+      const primerDia = new Date(anio, mes, 1).getDay();
+      const diasEnMes = new Date(anio, mes + 1, 0).getDate();
+
+      let tabla = "<table border='1' cellpadding='5'><tr>";
+      const diasSemana = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+      for (let d of diasSemana) {
+        tabla += "<th>" + d + "</th>";
+      }
+      tabla += "</tr><tr>";
+
+      // Espacios vacíos antes del primer día
+      for (let i = 0; i < primerDia; i++) {
+        tabla += "<td></td>";
+      }
+
+      // Días del mes
+      for (let dia = 1; dia <= diasEnMes; dia++) {
+        if ((primerDia + dia - 1) % 7 === 0 && dia > 1) {
+          tabla += "</tr><tr>";
+        }
+        tabla += "<td>" + dia + "</td>";
+      }
+
+      tabla += "</tr></table>";
+      calendario.innerHTML = tabla;
+    });
+  </script>
+</head>
+<body>
+  <h1>Reservar el Quincho</h1>
+  <p>Selecciona un día en el calendario para realizar tu reserva.</p>
+
+  <div id="calendario"></div>
+
+  <p><a href="index.html">Volver al inicio</a></p>
+</body>
+</html>
