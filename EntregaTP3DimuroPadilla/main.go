@@ -113,9 +113,13 @@ func createReservation(w http.ResponseWriter, r *http.Request, cabin_id string, 
 
 func getReservation(w http.ResponseWriter, r *http.Request, fecha string) {
 	fechaPased, err := time.Parse("2006-01-02", fecha)
-	reservation, err := dbQueries.GetReservationByFecha(ctx, fechaPased)
 	if err != nil {
 		http.Error(w, "La fecha no cumple el formato adecuado", http.StatusNotFound)
+		return
+	}
+	reservation, err := dbQueries.GetReservationByFecha(ctx, fechaPased)
+	if err != nil {
+		http.Error(w, "Error al obtener la reserva", http.StatusNotFound)
 		return
 	}
 
@@ -124,7 +128,54 @@ func getReservation(w http.ResponseWriter, r *http.Request, fecha string) {
 }
 
 func cabinHandler(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	emailContact := r.URL.Query().Get("emailContact")
+	phoneContact := r.URL.Query().Get("phoneContact")
+	password := r.URL.Query().Get("password")
 
+	switch r.Method {
+	case http.MethodGet:
+		getCabin(w, r, id)
+	case http.MethodPut:
+		updateCabin(w, r, id, emailContact, phoneContact, password)
+	default:
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+	}
+}
+
+func updateCabin(w http.ResponseWriter, r *http.Request, id, emailContact, phoneContact, password string) {
+	cabinID, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, "El ID de la cabaña debe ser un número entero", http.StatusBadRequest)
+		return
+	}
+	cabin, err := dbQueries.UpdateCabin(ctx, db.UpdateCabinParams{
+		ID:           int32(cabinID),
+		EmailContact: emailContact,
+		PhoneContact: phoneContact,
+		Password:     password,
+	})
+	if err != nil {
+		http.Error(w, "Error al actualizar la cabaña", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(cabin)
+}
+
+func getCabin(w http.ResponseWriter, r *http.Request, id string) {
+	cabinID, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, "El ID de la cabaña debe ser un número entero", http.StatusBadRequest)
+		return
+	}
+	cabin, err := dbQueries.GetCabin(ctx, int32(cabinID))
+	if err != nil {
+		http.Error(w, "Error al obtener la cabaña", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(cabin)
 }
 func main() {
 	// Conectar a la base
@@ -132,6 +183,7 @@ func main() {
 	if err != nil {
 		log.Fatal("No se pudo conectar a la base:", err)
 	}
+
 	defer conn.Close()
 
 	queries := db.New(conn)
@@ -187,7 +239,7 @@ func main() {
 		fmt.Printf("¿Fecha %s disponible?: %v\n", fecha.Format("2006-01-02"), disponible)
 	*/
 	http.HandleFunc("/reservations", reservationHandler)
-	http.HandleFunc("/cabins", cabinHandler)
+	//http.HandleFunc("/cabins", cabinHandler)
 
 	port := ":8080"
 	fmt.Printf("Servidor escuchando en http://localhost%s\n", port)
