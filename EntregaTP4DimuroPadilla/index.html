@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Reservas de Quincho</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <h1 id="titulo-h1">Sistema de Reservas del Quincho</h1>
+        <h2 id="titulo-h2">Nueva reserva</h2>
+        <form id="form-crear-reserva">
+            <input type="number" name="cabin_id" placeholder="Cabin ID" required />
+            <input type="date"   name="fecha" placeholder="YYYY-MM-DD" required />
+            <button type="submit">Crear</button>
+        </form>
+
+        <h2 id="titulo-h2">Actualizar reserva</h2>
+        <form id="form-actualizar-reserva">
+            <input type="number" name="cabin_id" placeholder="Cabin ID" required />
+            <input type="date"   name="fecha" placeholder="Fecha actual" required />
+            <input type="date"   name="fecha_nueva" placeholder="Nueva fecha" required />
+            <button type="submit">Actualizar</button>
+        </form>
+
+        <ul id="lista-reservas">
+            <!-- Las reservas se agregan dinámicamente -->
+        </ul>
+    </body>
+    <script src="app.js" defer=""></script>
+</html>
