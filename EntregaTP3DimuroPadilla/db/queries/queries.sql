@@ -49,7 +49,7 @@ ORDER BY fecha DESC;
 
 -- name: UpdateReservation :one
 UPDATE reservations
-SET fecha = COALESCE(NULLIF(sqlc.arg('NewFecha'),''), fecha)
+SET fecha = sqlc.arg('NewFecha')
 WHERE cabin_id = $1 AND fecha = $2
 RETURNING *;
 

@@ -17,7 +17,7 @@ import (
 const dbSource = "postgres://user:password@localhost:5432/mydb?sslmode=disable"
 
 var ctx context.Context
-var dbQueries db.Queries
+var dbQueries *db.Queries
 
 func reservationHandler(w http.ResponseWriter, r *http.Request) {
 	cabin_id := r.URL.Query().Get("cabin_id")
@@ -205,11 +205,11 @@ func main() {
 
 	defer conn.Close()
 
-	queries := db.New(conn)
-	ctx := context.Background()
+	dbQueries = db.New(conn)
+	ctx = context.Background()
 
 	// 1. Crear una Cabin
-	cabin, err := queries.CreateCabin(ctx, db.CreateCabinParams{
+	cabin, err := dbQueries.CreateCabin(ctx, db.CreateCabinParams{
 		EmailContact: "contacto@ejemplo.com",
 		PhoneContact: "123456789",
 		Password:     "secreta",
@@ -220,7 +220,7 @@ func main() {
 	fmt.Printf("Cabin creada: %+v\n", cabin)
 
 	// 2. Crear una Reservation
-	res, err := queries.CreateReservation(ctx, db.CreateReservationParams{
+	res, err := dbQueries.CreateReservation(ctx, db.CreateReservationParams{
 		CabinID: cabin.ID,
 		Fecha:   time.Now().AddDate(0, 0, 8), // reserva dentro de 7 días
 	})
@@ -230,7 +230,7 @@ func main() {
 	fmt.Printf("Reservation creada: %+v\n", res)
 
 	// 3. Listar todas las cabins
-	cabins, err := queries.ListCabins(ctx)
+	cabins, err := dbQueries.ListCabins(ctx)
 	if err != nil {
 		log.Fatal("Error listando cabins:", err)
 	}
@@ -240,7 +240,7 @@ func main() {
 	}
 
 	// 4. Listar todas las reservations
-	reservations, err := queries.ListReservations(ctx)
+	reservations, err := dbQueries.ListReservations(ctx)
 	if err != nil {
 		log.Fatal("Error listando reservations:", err)
 	}
@@ -251,7 +251,7 @@ func main() {
 
 	// 5. Probar disponibilidad de fecha
 	fecha := time.Now().AddDate(0, 0, 7)
-	disponible, err := queries.IsFechaDisponible(ctx, fecha)
+	disponible, err := dbQueries.IsFechaDisponible(ctx, fecha)
 	if err != nil {
 		log.Fatal("Error verificando disponibilidad:", err)
 	}

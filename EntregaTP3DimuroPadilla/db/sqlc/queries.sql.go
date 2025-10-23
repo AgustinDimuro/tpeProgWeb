@@ -299,15 +299,15 @@ func (q *Queries) UpdateCabin(ctx context.Context, arg UpdateCabinParams) (Cabin
 
 const updateReservation = `-- name: UpdateReservation :one
 UPDATE reservations
-SET fecha = COALESCE(NULLIF($3,''), fecha)
+SET fecha = $3
 WHERE cabin_id = $1 AND fecha = $2
 RETURNING id, cabin_id, fecha, created_at
 `
 
 type UpdateReservationParams struct {
-	CabinID  int32       `json:"cabin_id"`
-	Fecha    time.Time   `json:"fecha"`
-	NewFecha interface{} `json:"NewFecha"`
+	CabinID  int32     `json:"cabin_id"`
+	Fecha    time.Time `json:"fecha"`
+	NewFecha time.Time `json:"NewFecha"`
 }
 
 func (q *Queries) UpdateReservation(ctx context.Context, arg UpdateReservationParams) (Reservation, error) {

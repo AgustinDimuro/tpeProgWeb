@@ -47,7 +47,7 @@ docker-logs:
 
 wait-for-db: docker-up
 	@echo "=> Esperando que la base de datos esté lista..."
-	@until docker exec mydb pg_isready -U user -d TPEdb; do \
+	@until docker exec mydb pg_isready -U user -d mydb; do \
 		sleep 1; \
 	done
 	@echo "✅ Base de datos lista!"
