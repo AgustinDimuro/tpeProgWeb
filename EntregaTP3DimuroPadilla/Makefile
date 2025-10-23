@@ -56,6 +56,8 @@ reset:
 	docker stop mydb
 	docker rm mydb
 
+hurl:
+	hurl --test requests.hurl
 
 # ---- FLUJO COMPLETO ----
 start: build wait-for-db 
