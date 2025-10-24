@@ -89,6 +89,15 @@ func updateReservation(w http.ResponseWriter, r *http.Request, cabin_id, fecha, 
 		http.Error(w, "La nueva fecha no cumple el formato adecuado", http.StatusNotFound)
 		return
 	}
+
+	nowUTC := time.Now().UTC()
+	todayUTC := time.Date(nowUTC.Year(), nowUTC.Month(), nowUTC.Day(), 0, 0, 0, 0, time.UTC)
+
+	if fechaNuevaParsed.Before(todayUTC) {
+		http.Error(w, "La nueva fecha de la reserva debe ser de hoy o a futuro", http.StatusBadRequest)
+		return
+	}
+
 	cabinID, err := strconv.Atoi(cabin_id)
 	if err != nil {
 		http.Error(w, "El ID de la cabaña debe ser un número entero", http.StatusBadRequest)
@@ -113,6 +122,15 @@ func createReservation(w http.ResponseWriter, r *http.Request, cabin_id string, 
 		http.Error(w, "La fecha no cumple el formato adecuado", http.StatusNotFound)
 		return
 	}
+
+	nowUTC := time.Now().UTC()
+	todayUTC := time.Date(nowUTC.Year(), nowUTC.Month(), nowUTC.Day(), 0, 0, 0, 0, time.UTC)
+
+	if fechaParsed.Before(todayUTC) {
+		http.Error(w, "La fecha de la reserva debe ser de hoy o a futuro", http.StatusBadRequest)
+		return
+	}
+
 	cabinID, err := strconv.Atoi(cabin_id)
 	if err != nil {
 		http.Error(w, "El ID de la cabaña debe ser un número entero", http.StatusBadRequest)
@@ -218,6 +236,16 @@ func main() {
 		log.Fatal("Error creando cabin:", err)
 	}
 	fmt.Printf("Cabin creada: %+v\n", cabin)
+
+	cabin2, err := dbQueries.CreateCabin(ctx, db.CreateCabinParams{
+		EmailContact: "contacto@ejemplo.com",
+		PhoneContact: "123456789",
+		Password:     "secreta",
+	})
+	if err != nil {
+		log.Fatal("Error creando cabin:", err)
+	}
+	fmt.Printf("Cabin creada: %+v\n", cabin2)
 
 	// 2. Crear una Reservation
 	res, err := dbQueries.CreateReservation(ctx, db.CreateReservationParams{

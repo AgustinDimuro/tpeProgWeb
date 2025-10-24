@@ -71,6 +71,16 @@ actualizarReservas.addEventListener("submit", async (ev) => {
         return alert("Completá Cabin ID, fecha actual y nueva fecha (YYYY-MM-DD).");
     }
 
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); 
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayString = `${yyyy}-${mm}-${dd}`;
+
+    if (fecha < todayString) {
+        return alert("La fecha de la reserva debe ser de hoy o a futuro.");
+    }
+
     try {
         const url =
         `${API_BASE}/reservation?cabin_id=${encodeURIComponent(cabin_id)}&fecha=${encodeURIComponent(fecha)}&fecha_nueva=${encodeURIComponent(fechaNueva)}`;
