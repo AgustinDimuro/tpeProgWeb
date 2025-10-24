@@ -49,12 +49,14 @@ crearReservas.addEventListener("submit", async (ev) => {
   try {
     const url = `${API_BASE}/reservation?cabin_id=${encodeURIComponent(cabin_id)}&fecha=${encodeURIComponent(fecha)}`;
     const res = await fetch(url, { method: "POST" });
-    if (!res.ok) throw new Error(`POST /reservation -> ${res.status}`);
-        crearReservas.reset();
-        await getReservations(); // refrescar lista completa
+    if (!res.ok) 
+        throw new Error(`POST /reservation -> ${res.status}`);
+    await getReservations(); // refrescar lista completa
+    crearReservas.reset();
   } catch (e) {
         console.error(e);
         alert("No se pudo crear la reserva.");
+        crearReservas.reset();
   }
 });
 
@@ -73,11 +75,14 @@ actualizarReservas.addEventListener("submit", async (ev) => {
         const url =
         `${API_BASE}/reservation?cabin_id=${encodeURIComponent(cabin_id)}&fecha=${encodeURIComponent(fecha)}&fecha_nueva=${encodeURIComponent(fechaNueva)}`;
         const res = await fetch(url, { method: "PUT" });
-        if (!res.ok) throw new Error(`PUT /reservation -> ${res.status}`);
-            await getReservations();
+        if (!res.ok) 
+            throw new Error(`PUT /reservation -> ${res.status}`);
+        await getReservations();
+        actualizarReservas.reset();
     } catch (e) {
         console.error(e);
         alert("No se pudo actualizar la reserva.");
+        actualizarReservas.reset();
     }
 });
 

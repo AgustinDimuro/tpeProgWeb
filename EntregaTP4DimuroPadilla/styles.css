@@ -1,34 +1,175 @@
-#form-crear {
-    margin: 20px;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f9f9f9;
+/* ===== PALETA BOSQUE + QUINCHO ===== */
+:root{
+  --green-dark:#12372a;
+  --green:#1a4d36;
+  --green-light:#2f6e4e;
+  --wood-light:#fff6e6;
+  --wood:#e6cda4;
+  --wood-dark:#b9986d;
+  --red-fire:#d64541;
+  --orange-fire:#ff884d;
+  --cream:#fffdfa;
+  --shadow:rgba(0,0,0,0.15);
 }
 
-#form-actualizar {
-    margin: 20px;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f1f1f1;
+/* ===== BASE ===== */
+*{box-sizing:border-box;font-family:'Segoe UI',Roboto,sans-serif;}
+body{
+  margin:0;
+  background:linear-gradient(180deg,#f6f9f6 0%,#ffffff 100%);
+  color:#222;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:32px 12px;
+  min-height:100vh;
 }
 
-.lista-reservas {
-    margin: 20px;
-    padding: 20px;
-    border: 1px solid #e58181;
-    border-radius: 5px;
-    background-color: #ba1e1e;
+/* ===== TITULOS ===== */
+.titulo-h1{
+  font-size:2.4rem;
+  font-weight:800;
+  color:var(--green-dark);
+  text-align:center;
+  margin-bottom:20px;
+  letter-spacing:1px;
+}
+.titulo-h2{
+  text-align:center;
+  color:var(--green);
+  font-weight:700;
+  margin:30px 0 12px;
 }
 
-#titulo-h1 {
-    text-align: center;
-    color: #333;
+/* ===== CONTENEDORES (recuadro general por sección) ===== */
+.section-box{
+  width:min(720px, 95%);
+  background:var(--wood-light);
+  border:3px solid var(--wood-dark);
+  border-radius:16px;
+  padding:28px 24px;
+  margin:20px auto;
+  box-shadow:0 6px 18px var(--shadow);
+  position:relative;
+  overflow:hidden;
+}
+.section-box::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(
+    90deg,
+    rgba(185,152,109,.08) 0 4px,
+    rgba(185,152,109,.04) 4px 8px);
+  pointer-events:none;
 }
 
-#titulo-h2 {
-    color: #555;
-    margin-top: 20px;
-    text-align: center;
+/* ===== FORMULARIOS ===== */
+.form-crear-reserva,
+.form-actualizar-reserva{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:12px;
+  margin-top:14px;
+}
+
+input[type="number"],
+input[type="date"]{
+  padding:10px 12px;
+  border:1px solid #ccc;
+  border-radius:8px;
+  background:white;
+  font-size:.95rem;
+  min-width:150px;
+  transition:border-color .2s, box-shadow .2s;
+}
+input[type="number"]:focus,
+input[type="date"]:focus{
+  outline:none;
+  border-color:var(--green-light);
+  box-shadow:0 0 0 3px rgba(31,110,74,.15);
+}
+
+/* ===== BOTONES ===== */
+button{
+  border:none;
+  border-radius:8px;
+  padding:10px 16px;
+  font-weight:700;
+  color:white;
+  cursor:pointer;
+  transition:transform .15s, filter .2s;
+}
+button:hover{transform:translateY(-1px);filter:brightness(1.05);}
+button:active{transform:translateY(0);filter:brightness(.95);}
+.form-crear-reserva button{
+  background:linear-gradient(180deg,var(--orange-fire),var(--red-fire));
+}
+.form-actualizar-reserva button{
+  background:linear-gradient(180deg,#34b36b,#1f6e4a);
+}
+
+/* ===== LISTA ===== */
+.lista-reservas{
+  list-style:none;
+  margin-top:10px;
+  padding:0;
+}
+.lista-reservas li{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 14px;
+  margin-bottom:10px;
+  border-radius:10px;
+  background:var(--cream);
+  border:1px solid var(--wood);
+  box-shadow:0 2px 4px rgba(0,0,0,0.05);
+  font-size:1rem;
+  color:var(--green-dark);
+  transition:background .2s;
+}
+.lista-reservas li:hover{
+  background:#fff0e0;
+}
+.lista-reservas button{
+  background:linear-gradient(180deg,#e53935,#c62828);
+  padding:6px 10px;
+  border-radius:6px;
+  font-size:.9rem;
+}
+
+/* ===== DECORACIÓN DE SECCIONES ===== */
+.section-box.crear::before{
+  background-image:repeating-linear-gradient(90deg,rgba(255,136,77,.08) 0 4px,rgba(255,136,77,.03) 4px 8px);
+}
+.section-box.actualizar::before{
+  background-image:repeating-linear-gradient(90deg,rgba(52,179,107,.08) 0 4px,rgba(52,179,107,.03) 4px 8px);
+}
+.section-box.listar::before{
+  background-image:repeating-linear-gradient(90deg,rgba(255,190,40,.08) 0 4px,rgba(255,190,40,.03) 4px 8px);
+}
+
+/* ===== ICONOS DE CABECERA EN SECCIONES ===== */
+.section-title-icon{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-size:1.2rem;
+  font-weight:700;
+  color:var(--green-dark);
+}
+.section-title-icon span.emoji{
+  font-size:1.5rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width:600px){
+  .form-crear-reserva, .form-actualizar-reserva{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  input, button{width:100%;}
 }
