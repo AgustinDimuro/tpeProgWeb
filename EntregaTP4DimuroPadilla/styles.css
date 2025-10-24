@@ -253,3 +253,64 @@ button:active{
 .form-control label.label-fantasma {
   visibility: hidden;
 }
+
+/* ===== ESTILOS PARA LA PÁGINA DEL CALENDARIO ===== */
+
+#calendario-container {
+  width: 100%;
+  max-width: 1100px; /* Más ancho que los formularios */
+  margin: 20px auto;
+  position: relative;
+  z-index: 1; /* Para que esté sobre las pseudo-texturas */
+}
+
+/* Sobrescribimos algunos estilos de FullCalendar 
+  para que coincidan con nuestra paleta de colores.
+*/
+
+/* Botones (Mes, Semana, Hoy, etc.) */
+.fc .fc-button-primary {
+  background-color: var(--green);
+  border-color: var(--green-dark);
+  font-family: 'Poppins', sans-serif;
+}
+.fc .fc-button-primary:hover,
+.fc .fc-button-primary:active {
+  background-color: var(--green-light) !important;
+  border-color: var(--green-dark) !important;
+  box-shadow: none !important;
+}
+.fc .fc-button-primary:disabled {
+  background-color: var(--wood-dark);
+  border-color: var(--wood-dark);
+}
+
+/* El día de "Hoy" */
+.fc .fc-daygrid-day.fc-day-today {
+  background-color: rgba(255, 246, 230, 0.7); /* --wood-light con transparencia */
+}
+
+/* Los eventos de reserva */
+.fc-event {
+  background-color: var(--red-fire) !important;
+  border-color: var(--orange-fire) !important;
+  font-weight: 700;
+  cursor: pointer;
+}
+.fc-event:hover {
+  filter: brightness(1.1);
+}
+
+/* Link para volver */
+.link-volver {
+  display: inline-block;
+  margin-bottom: 20px;
+  font-weight: 700;
+  color: var(--green);
+  text-decoration: none;
+  font-size: 1rem;
+}
+.link-volver:hover {
+  color: var(--green-dark);
+  text-decoration: underline;
+}
