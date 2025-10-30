@@ -235,7 +235,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error creando cabin:", err)
 	}
-	fmt.Printf("Cabin creada: %+v\n", cabin)
+	//	fmt.Printf("Cabin creada: %+v\n", cabin)
 
 	cabin2, err := dbQueries.CreateCabin(ctx, db.CreateCabinParams{
 		EmailContact: "contacto@ejemplo.com",
@@ -245,7 +245,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error creando cabin:", err)
 	}
-	fmt.Printf("Cabin creada: %+v\n", cabin2)
+	//	fmt.Printf("Cabin creada: %+v\n", cabin2)
 
 	// 2. Crear una Reservation
 	res, err := dbQueries.CreateReservation(ctx, db.CreateReservationParams{
@@ -255,36 +255,46 @@ func main() {
 	if err != nil {
 		log.Fatal("Error creando reservation:", err)
 	}
+
+	res2, err := dbQueries.CreateReservation(ctx, db.CreateReservationParams{
+		CabinID: cabin2.ID,
+		Fecha:   time.Now().AddDate(0, 0, 17), // reserva dentro de 7 días
+	})
+	if err != nil {
+		log.Fatal("Error creando reservation:", err)
+	}
+
 	fmt.Printf("Reservation creada: %+v\n", res)
+	fmt.Printf("Reservation creada: %+v\n", res2)
+	/*
+		// 3. Listar todas las cabins
+		cabins, err := dbQueries.ListCabins(ctx)
+		if err != nil {
+			log.Fatal("Error listando cabins:", err)
+		}
+		fmt.Println("Todas las cabins:")
+		for _, c := range cabins {
+			fmt.Printf(" - %+v\n", c)
+		}
 
-	// 3. Listar todas las cabins
-	cabins, err := dbQueries.ListCabins(ctx)
-	if err != nil {
-		log.Fatal("Error listando cabins:", err)
-	}
-	fmt.Println("Todas las cabins:")
-	for _, c := range cabins {
-		fmt.Printf(" - %+v\n", c)
-	}
+		// 4. Listar todas las reservations
+		reservations, err := dbQueries.ListReservations(ctx)
+		if err != nil {
+			log.Fatal("Error listando reservations:", err)
+		}
+		fmt.Println("Todas las reservations:")
+		for _, r := range reservations {
+			fmt.Printf(" - %+v\n", r)
+		}
 
-	// 4. Listar todas las reservations
-	reservations, err := dbQueries.ListReservations(ctx)
-	if err != nil {
-		log.Fatal("Error listando reservations:", err)
-	}
-	fmt.Println("Todas las reservations:")
-	for _, r := range reservations {
-		fmt.Printf(" - %+v\n", r)
-	}
-
-	// 5. Probar disponibilidad de fecha
-	fecha := time.Now().AddDate(0, 0, 7)
-	disponible, err := dbQueries.IsFechaDisponible(ctx, fecha)
-	if err != nil {
-		log.Fatal("Error verificando disponibilidad:", err)
-	}
-	fmt.Printf("¿Fecha %s disponible?: %v\n", fecha.Format("2006-01-02"), disponible)
-
+		// 5. Probar disponibilidad de fecha
+		fecha := time.Now().AddDate(0, 0, 7)
+		disponible, err := dbQueries.IsFechaDisponible(ctx, fecha)
+		if err != nil {
+			log.Fatal("Error verificando disponibilidad:", err)
+		}
+		fmt.Printf("¿Fecha %s disponible?: %v\n", fecha.Format("2006-01-02"), disponible)
+	*/
 	http.HandleFunc("/reservation", reservationHandler)
 	http.HandleFunc("/reservations", reservationsHandler)
 

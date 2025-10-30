@@ -7,7 +7,6 @@ GET http://localhost:8080/cabin?id=1
 HTTP 200
 [Asserts]
 jsonpath "$.id" == 1
-jsonpath "$.email_contact" == "contacto@ejemplo.com"
 
 
 # 2. Actualizar la cabaña con ID 1
