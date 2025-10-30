@@ -57,6 +57,9 @@ reset:
 	docker rm mydb
 
 hurl:
+	hurl requests.hurl
+
+hurltest:
 	hurl --test requests.hurl
 
 # ---- FLUJO COMPLETO ----

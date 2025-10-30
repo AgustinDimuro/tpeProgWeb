@@ -48,6 +48,12 @@ Para ello agregamos funciones encargadas de realizar las operaciones de creació
       - Verificación de que la aplicación detecte un metodo incorrecto al intentar conectarse a un endpoint.
       - Lista todas las reservas a menos que no haya ninguna.
 
+   Si desea ver las mismas pruebas pero en el modo de testeo del comando hurl, puede ejecutar:
+   
+   ```bash
+   make hurltest
+   ```
+   Debería poder observar que al ejecutar este comando hurl le devuelve como resultado "Success". 
 ---
 
 ## Descripción de resoluciones implementadas para el Trabajo Práctico 4
