@@ -47,10 +47,10 @@ crearReservas.addEventListener("submit", async (ev) => {
   if (!cabin_id || !fecha) return alert("Completá Cabin ID y fecha (YYYY-MM-DD).");
 
   try {
-    const url = `${API_BASE}/reservation?cabin_id=${encodeURIComponent(cabin_id)}&fecha=${encodeURIComponent(fecha)}`;
+    const url = `${API_BASE}/reservations?cabin_id=${encodeURIComponent(cabin_id)}&fecha=${encodeURIComponent(fecha)}`;
     const res = await fetch(url, { method: "POST" });
     if (!res.ok) 
-        throw new Error(`POST /reservation -> ${res.status}`);
+        throw new Error(`POST /reservations -> ${res.status}`);
     await getReservations(); // refrescar lista completa
     crearReservas.reset();
   } catch (e) {
@@ -83,10 +83,10 @@ actualizarReservas.addEventListener("submit", async (ev) => {
 
     try {
         const url =
-        `${API_BASE}/reservation?cabin_id=${encodeURIComponent(cabin_id)}&fecha=${encodeURIComponent(fecha)}&fecha_nueva=${encodeURIComponent(fechaNueva)}`;
+        `${API_BASE}/reservations?cabin_id=${encodeURIComponent(cabin_id)}&fecha=${encodeURIComponent(fecha)}&fecha_nueva=${encodeURIComponent(fechaNueva)}`;
         const res = await fetch(url, { method: "PUT" });
         if (!res.ok) 
-            throw new Error(`PUT /reservation -> ${res.status}`);
+            throw new Error(`PUT /reservations -> ${res.status}`);
         await getReservations();
         actualizarReservas.reset();
     } catch (e) {
@@ -101,9 +101,9 @@ actualizarReservas.addEventListener("submit", async (ev) => {
 async function eliminarReserva(cabin_id, fecha) {
   if (!confirm(`Eliminar reserva de cabin ${cabin_id} en ${fecha}?`)) return;
   try {
-    const url = `${API_BASE}/reservation?cabin_id=${encodeURIComponent(cabin_id)}&fecha=${encodeURIComponent(fecha)}`;
+    const url = `${API_BASE}/reservations?cabin_id=${encodeURIComponent(cabin_id)}&fecha=${encodeURIComponent(fecha)}`;
     const res = await fetch(url, { method: "DELETE" });
-    if (!res.ok) throw new Error(`DELETE /reservation -> ${res.status}`);
+    if (!res.ok) throw new Error(`DELETE /reservations -> ${res.status}`);
         await getReservations();
   } catch (e) {
         console.error(e);
