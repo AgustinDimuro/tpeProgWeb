@@ -1,0 +1,32 @@
+package views
+
+
+templ ReservationList(reservations []domain.Reservation) {
+
+	if len(reservations) == 0 {
+		<article style="text-align: center;">
+			<h4>No hay reservas</h4>
+			<p>No se encontraron reservvas para mostrar.</p>
+		</article>
+	} else {
+
+		// Requisito 2: Renderizar la tabla si hay reservas
+		<table>
+			<thead>
+				<tr>
+					<th>Cabin</th>
+					<th>Date</th>
+				</tr>
+			</thead>
+			<tbody>
+				// Iteramos sobre el slice de productos
+				for _, reserva := range reservations {
+					<tr>
+						<td>{ reserva.CabinID }</td>
+						<td>{ reserva.Fecha }</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	}
+}
