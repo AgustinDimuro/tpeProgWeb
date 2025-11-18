@@ -18,6 +18,7 @@ type ReservationADMRepository interface {
 }
 type ReservationUserRepository interface {
 	CreateReservation(reservation *Reservation) error
+	GetAllReservations() ([]*Reservation, error)
 	GetAllReservationsByCabinID(CabinID int64) ([]*Reservation, error)
 	DeleteReservationByDate(CabinID int64, fecha time.Time) error
 	ChangeReservationDate(CabinID int64, oldDate time.Time, newDate time.Time) error

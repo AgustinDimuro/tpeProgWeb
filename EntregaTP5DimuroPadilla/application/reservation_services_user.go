@@ -32,6 +32,10 @@ func (service *ReservationServicesUser) GetAllReservationsByCabinID(cabinID int6
 	return service.userRepository.GetAllReservationsByCabinID(cabinID)
 }
 
+func (service *ReservationServicesUser) GetAllReservations() ([]*domain.Reservation, error) {
+	return service.userRepository.GetAllReservations()
+}
+
 func (service *ReservationServicesUser) DeleteReservationByDate(CabinID int64, fecha time.Time) error {
 	return service.userRepository.DeleteReservationByDate(CabinID, fecha)
 }

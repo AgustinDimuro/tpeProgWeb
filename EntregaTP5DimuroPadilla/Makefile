@@ -16,8 +16,12 @@ generate:
 	@echo "=> Generando código con sqlc..."
 	@sqlc generate
 
+templ:
+	@echo "=> Generando código Go a partir de archivos templ en /views..."
+	@templ generate -path ./views
+
 # Construye el binario
-build: generate
+build: generate templ
 	@echo "=> Compilando aplicación..."
 	@go build -o $(APP_NAME) .
 

@@ -101,7 +101,7 @@ func main() {
 	http.HandleFunc("/admin/cabins", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			adminHandler.GetCabinByIDHandler(w, r)
+			//adminHandler.GetCabinByIDHandler(w, r)
 		case http.MethodPut:
 			adminHandler.UpdateCabinHandler(w, r)
 		default:

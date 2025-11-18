@@ -26,8 +26,8 @@ type UserHandler struct {
 func (h *UserHandler) HandleShowMainPage(w http.ResponseWriter, r *http.Request) {
 	// Obtenemos todas las reservaciones para el usuario y las pasamos al Layout
 	// Aqui habria que definir de qué cabaña son las reservas a mostrar
-	cabinID := int64(1) // Por ejemplo, la cabaña con ID 1
-	reservations, err := h.ReservationServiceUser.GetAllReservationsByCabinID(cabinID)
+	//cabinID := int64(1) // Por ejemplo, la cabaña con ID 1
+	reservations, err := h.ReservationServiceUser.GetAllReservations()
 	if err != nil {
 		log.Printf("Error al obtener reservaciones: %v", err)
 		http.Error(w, "No se pudieron cargar las reservaciones", http.StatusInternalServerError)
@@ -160,6 +160,8 @@ func (h *AdminHandler) GetCabinByIDHandler(w http.ResponseWriter, r *http.Reques
 }
 */
 
+/////////////////////////ESTE SI VA PERO NO ANDA POR AHORA
+/*
 func (h *AdminHandler) GetCabinByIDHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 1. Obtener el ID de la URL (ej: /admin/cabins/edit?id=5)
@@ -186,7 +188,7 @@ func (h *AdminHandler) GetCabinByIDHandler(w http.ResponseWriter, r *http.Reques
 	component := views.AdminEditCabin(cabin)
 	component.Render(r.Context(), w)
 }
-
+*/
 /*
 func (h *AdminHandler) UpdateCabinHandler(w http.ResponseWriter, r *http.Request) {
 
