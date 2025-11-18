@@ -1,7 +1,8 @@
 package views
+import "tpeProgWeb/domain"
+import "fmt"
 
-
-templ ReservationList(reservations []domain.Reservation) {
+templ ReservationList(reservations []*domain.Reservation) {
 
 	if len(reservations) == 0 {
 		<article style="text-align: center;">
@@ -22,8 +23,8 @@ templ ReservationList(reservations []domain.Reservation) {
 				// Iteramos sobre el slice de productos
 				for _, reserva := range reservations {
 					<tr>
-						<td>{ reserva.CabinID }</td>
-						<td>{ reserva.Fecha }</td>
+						<td>{ fmt.Sprintf("%d", reserva.CabinID) }</td>
+						<td>{ reserva.Fecha.Format("2006-01-02") }</td>
 					</tr>
 				}
 			</tbody>

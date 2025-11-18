@@ -97,6 +97,7 @@ func main() {
 	// a los handlers correctos.
 
 	// ---- Rutas de Cabañas (Admin) ----
+
 	http.HandleFunc("/admin/cabins", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
@@ -117,7 +118,6 @@ func main() {
 			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		}
 	})
-
 	// ---- Rutas de Reservas (User) ----
 	// Esta ruta maneja todo lo relacionado con las reservas de usuario
 	http.HandleFunc("/reservations", func(w http.ResponseWriter, r *http.Request) {
@@ -134,8 +134,6 @@ func main() {
 			}
 		case http.MethodPost:
 			userHandler.CreateReservationHandler(w, r)
-		case http.MethodPut:
-			userHandler.UpdateReservationHandler(w, r)
 		case http.MethodDelete:
 			userHandler.DeleteReservationHandler(w, r)
 		default:
@@ -143,13 +141,18 @@ func main() {
 		}
 	})
 
-	// -----------------------------------------------------------------
-	// PASO 6: SERVIR ARCHIVOS ESTÁTICOS E INICIAR EL SERVIDOR
-	// -----------------------------------------------------------------
+	http.HandleFunc("/reservations/update", func(w http.ResponseWriter, r *http.Request) {
+		println("-----------------------------UPDATE-------------------------------------")
+		switch r.Method {
+		case http.MethodPost:
+			userHandler.UpdateReservationHandler(w, r)
+		default:
+			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		}
+	})
 
-	// Sirve archivos estáticos (index.html, app.js, styles.css) desde el directorio raíz
-	fs := http.FileServer(http.Dir("."))
-	http.Handle("/", fs)
+	// Esto en la realidad deberia llevar a un login handler
+	http.HandleFunc("/", userHandler.HandleShowMainPage)
 
 	port := ":8080"
 	fmt.Printf("Servidor escuchando en http://localhost%s\n", port)

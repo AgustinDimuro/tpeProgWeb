@@ -2,7 +2,7 @@ package views
 
 templ CreateReservationForm() {
     <h2 id="titulo-h2" class="titulo-h2">Nueva reserva</h2>
-    <form id="form-crear-reserva" class="form-crear-reserva">
+    <form id="form-crear-reserva" class="form-crear-reserva" method="POST" action="/reservations">
         <div class="form-control">
             <label for="new-cabin-id">Cabin ID</label>
             <input type="number" id="new-cabin-id" name="cabin_id" placeholder="Cabin ID" required />
@@ -20,7 +20,7 @@ templ CreateReservationForm() {
 
 templ UpdateReservationForm() {
     <h2 id="titulo-h2" class="titulo-h2">Actualizar reserva</h2>
-    <form id="form-actualizar-reserva" class="form-actualizar-reserva">
+    <form id="form-actualizar-reserva" class="form-actualizar-reserva" method="POST" action="/reservations/update">
         <div class="form-control">
             <label for="update-cabin-id">Cabin ID</label>
             <input type="number" id="update-cabin-id" name="cabin_id" placeholder="Cabin ID" required />

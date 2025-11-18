@@ -1,7 +1,7 @@
 package views
+import "tpeProgWeb/domain"
 
-
-templ Layout() {
+templ Layout(reservations []*domain.Reservation) {
     <!DOCTYPE html>
     <html lang="es">
         <head>
@@ -24,8 +24,7 @@ templ Layout() {
             @UpdateReservationForm()
             
             // aca va la lista de reservas
-            @ReservationList()
+            @ReservationList(reservations)
         </body>
-        <script src="app.js" defer=""></script>
     </html>
 }
