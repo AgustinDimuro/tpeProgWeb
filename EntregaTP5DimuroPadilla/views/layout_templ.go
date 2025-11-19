@@ -31,7 +31,7 @@ func Layout(reservations []*domain.Reservation) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"es\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Reservas de Quincho</title><link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css\"></head><body><h1 id=\"titulo-h1\" class=\"titulo-h1\">Sistema de Reservas del Quincho</h1><a href=\"calendario.html\" class=\"link-volver\">Ver Calendario de Reservas</a>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"es\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Reservas de Quincho</title><link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css\"></head><body><h1 id=\"titulo-h1\" class=\"titulo-h1\">Sistema de Reservas del Quincho</h1><a href=\"/calendario\" class=\"link-volver\">Ver Calendario de Reservas</a>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

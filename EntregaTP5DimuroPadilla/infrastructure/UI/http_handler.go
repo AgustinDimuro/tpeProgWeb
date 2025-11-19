@@ -51,7 +51,6 @@ func NewUserHandler(reservationServiceUser *application.ReservationServicesUser,
 		CabinServiceUser:       cabinServiceUser,
 	}
 }
-
 func (h *UserHandler) CreateReservationHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := r.ParseForm(); err != nil {
@@ -60,13 +59,15 @@ func (h *UserHandler) CreateReservationHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	cabinIDStr := r.FormValue("cabin_id")
-	fechaStr := r.FormValue("fecha")
+	fechaStr := r.FormValue("fecha") // El input type="date" envía "2025-01-25"
 
 	cabinID, err := strconv.ParseInt(cabinIDStr, 10, 64)
 	if err != nil {
 		http.Error(w, "El 'cabin_id' debe ser un número", http.StatusBadRequest)
 		return
 	}
+
+	// Parseamos la fecha con el estándar ISO que usa HTML5
 	fecha, err := time.Parse("2006-01-02", fechaStr)
 	if err != nil {
 		http.Error(w, "El formato de 'fecha' debe ser AAAA-MM-DD", http.StatusBadRequest)
@@ -81,9 +82,7 @@ func (h *UserHandler) CreateReservationHandler(w http.ResponseWriter, r *http.Re
 	if err := h.ReservationServiceUser.CreateReservation(&newRes); err != nil {
 
 		if errors.Is(err, application.ErrInvalidReservationDate) {
-
 			http.Error(w, err.Error(), http.StatusBadRequest)
-
 		} else {
 			http.Error(w, "Error interno al crear la reserva: "+err.Error(), http.StatusInternalServerError)
 		}
@@ -100,19 +99,23 @@ func (h *UserHandler) UpdateReservationHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	cabinIDStr := r.FormValue("cabin_id")
-	oldDateStr := r.FormValue("fecha")
-	newDateStr := r.FormValue("fecha_nueva")
+	oldDateStr := r.FormValue("fecha")       // Fecha actual (para identificar la reserva)
+	newDateStr := r.FormValue("fecha_nueva") // Nueva fecha deseada
 
 	cabinID, err := strconv.ParseInt(cabinIDStr, 10, 64)
 	if err != nil {
 		http.Error(w, "El 'cabin_id' debe ser un número", http.StatusBadRequest)
 		return
 	}
+
+	// 1. Parsear fecha vieja
 	oldDate, err := time.Parse("2006-01-02", oldDateStr)
 	if err != nil {
 		http.Error(w, "El formato de 'fecha' (actual) debe ser AAAA-MM-DD", http.StatusBadRequest)
 		return
 	}
+
+	// 2. Parsear fecha nueva
 	newDate, err := time.Parse("2006-01-02", newDateStr)
 	if err != nil {
 		http.Error(w, "El formato de 'fecha_nueva' debe ser AAAA-MM-DD", http.StatusBadRequest)
@@ -132,6 +135,57 @@ func (h *UserHandler) UpdateReservationHandler(w http.ResponseWriter, r *http.Re
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+func (h *UserHandler) HandleShowCalendar(w http.ResponseWriter, r *http.Request) {
+	// 1. Definir fecha por defecto (Hoy)
+	now := time.Now()
+	currentYear := now.Year()
+	currentMonth := int(now.Month())
+
+	// 2. Leer parámetros de la URL (ej: /calendario?month=12&year=2025)
+	queryMonth := r.URL.Query().Get("month")
+	queryYear := r.URL.Query().Get("year")
+
+	if queryMonth != "" && queryYear != "" {
+		m, errM := strconv.Atoi(queryMonth)
+		y, errY := strconv.Atoi(queryYear)
+		if errM == nil && errY == nil && m >= 1 && m <= 12 {
+			currentMonth = m
+			currentYear = y
+		}
+	}
+
+	// 3. Calcular lógica de navegación (Anterior / Siguiente)
+	// Creamos una fecha base con el mes actual visualizado
+	targetDate := time.Date(currentYear, time.Month(currentMonth), 1, 0, 0, 0, 0, time.UTC)
+
+	prevDate := targetDate.AddDate(0, -1, 0) // Restamos 1 mes
+	nextDate := targetDate.AddDate(0, 1, 0)  // Sumamos 1 mes
+
+	// 4. Obtener reservas (Igual que antes)
+	reservations, err := h.ReservationServiceUser.GetAllReservations()
+	if err != nil {
+		http.Error(w, "Error al cargar reservas", http.StatusInternalServerError)
+		return
+	}
+
+	// 5. Construir la grilla
+	weeks := application.BuildCalendarGrid(currentYear, time.Month(currentMonth), reservations)
+
+	// 6. Renderizar
+	// Pasamos más datos: mes/año actual, y mes/año de navegación
+	nombresMeses := []string{"", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"}
+
+	component := views.CalendarPage(
+		nombresMeses[currentMonth], // Nombre visual
+		currentMonth,               // Número del mes actual (para el selector)
+		currentYear,                // Año actual
+		weeks,
+		int(prevDate.Month()), prevDate.Year(), // Datos para flecha izquierda
+		int(nextDate.Month()), nextDate.Year(), // Datos para flecha derecha
+	)
+	component.Render(r.Context(), w)
+}
+
 /*
 func (h *AdminHandler) GetCabinByIDHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -149,7 +203,28 @@ func (h *AdminHandler) GetCabinByIDHandler(w http.ResponseWriter, r *http.Reques
 
 	cabin, err := h.CabinServiceADM.GetCabinByID(id)
 	if err != nil {
+func (h *UserHandler) HandleShowCalendar(w http.ResponseWriter, r *http.Request) {
+	// 1. Lógica de fechas (Año/Mes actual)
+	now := time.Now()
+	year := now.Year()
+	month := now.Month()
 
+	// 2. OBTENER TODAS LAS RESERVAS
+	// Cambiamos GetAllReservationsByCabinID(1) por GetAllReservations()
+	reservations, err := h.ReservationServiceUser.GetAllReservations()
+	if err != nil {
+		http.Error(w, "Error cargando reservas", http.StatusInternalServerError)
+		return
+	}
+
+	// 3. Construir la grilla (Esto sigue igual, la lógica agrupa por fecha automáticamente)
+	weeks := application.BuildCalendarGrid(year, month, reservations)
+
+	// 4. Renderizar
+	monthNames := []string{"", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"}
+	component := views.CalendarPage(monthNames[month], year, weeks)
+	component.Render(r.Context(), w)
+}
 		http.Error(w, "Error al obtener la cabaña: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -364,14 +439,22 @@ func (h *UserHandler) DeleteReservationHandler(w http.ResponseWriter, r *http.Re
 	}
 */
 func (h *UserHandler) DeleteReservationHandler(w http.ResponseWriter, r *http.Request) {
-	cabinIDStr := r.URL.Query().Get("cabin_id")
-	dateStr := r.URL.Query().Get("fecha")
+	// 1. Parsear el formulario (necesario para POST)
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error procesando formulario", http.StatusBadRequest)
+		return
+	}
+
+	// 2. Obtener valores usando FormValue (busca en Body y URL)
+	cabinIDStr := r.FormValue("cabin_id")
+	dateStr := r.FormValue("fecha")
 
 	if cabinIDStr == "" || dateStr == "" {
 		http.Error(w, "Se requieren los parámetros 'cabin_id' y 'fecha'", http.StatusBadRequest)
 		return
 	}
 
+	// 3. Conversiones (Igual que antes)
 	cabinID, err := strconv.ParseInt(cabinIDStr, 10, 64)
 	if err != nil {
 		http.Error(w, "El 'cabin_id' debe ser un número entero", http.StatusBadRequest)
@@ -384,11 +467,13 @@ func (h *UserHandler) DeleteReservationHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	// 4. Llamar al servicio
 	if err := h.ReservationServiceUser.DeleteReservationByDate(cabinID, fecha); err != nil {
 		http.Error(w, "Error al eliminar la reserva: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	// 5. Redirigir al inicio para "refrescar" la lista
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 

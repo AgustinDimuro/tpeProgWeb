@@ -26,6 +26,16 @@ func main() {
 	}
 	defer conn.Close()
 
+	maxRetries := 5
+	for i := 0; i < maxRetries; i++ {
+		err = conn.Ping()
+		if err == nil {
+			break
+		}
+		fmt.Printf("Intento %d/%d fallido: %v. Reintentando en 2s...\n", i+1, maxRetries, err)
+		time.Sleep(2 * time.Second)
+	}
+
 	if err = conn.Ping(); err != nil {
 		log.Fatal("No se pudo hacer ping a la base de datos:", err)
 	}
@@ -141,12 +151,29 @@ func main() {
 		}
 	})
 
+	// Dentro del main(), junto a tus otras rutas
+	http.HandleFunc("/calendario", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			userHandler.HandleShowCalendar(w, r)
+		} else {
+			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		}
+	})
+
 	http.HandleFunc("/reservations/update", func(w http.ResponseWriter, r *http.Request) {
 		println("-----------------------------UPDATE-------------------------------------")
 		switch r.Method {
 		case http.MethodPost:
 			userHandler.UpdateReservationHandler(w, r)
 		default:
+			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		}
+	})
+
+	http.HandleFunc("/reservations/delete", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			userHandler.DeleteReservationHandler(w, r)
+		} else {
 			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		}
 	})

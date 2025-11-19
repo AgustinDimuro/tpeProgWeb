@@ -1,33 +1,48 @@
 package views
+
 import "tpeProgWeb/domain"
 import "fmt"
 
 templ ReservationList(reservations []*domain.Reservation) {
 
-	if len(reservations) == 0 {
-		<article style="text-align: center;">
-			<h4>No hay reservas</h4>
-			<p>No se encontraron reservvas para mostrar.</p>
-		</article>
-	} else {
-
-		// Requisito 2: Renderizar la tabla si hay reservas
-		<table>
-			<thead>
-				<tr>
-					<th>Cabin</th>
-					<th>Date</th>
-				</tr>
-			</thead>
-			<tbody>
-				// Iteramos sobre el slice de productos
-				for _, reserva := range reservations {
-					<tr>
-						<td>{ fmt.Sprintf("%d", reserva.CabinID) }</td>
-						<td>{ reserva.Fecha.Format("2006-01-02") }</td>
-					</tr>
-				}
-			</tbody>
-		</table>
-	}
+    if len(reservations) == 0 {
+        <article style="text-align: center;">
+            <h4>No hay reservas</h4>
+            <p>No se encontraron reservas para mostrar.</p>
+        </article>
+    } else {
+        <div class="overflow-auto">
+            <table class="striped">
+                <thead>
+                    <tr>
+                        <th>Cabin</th>
+                        <th>Date</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    for _, reserva := range reservations {
+                        <tr>
+                            <td>{ fmt.Sprintf("%d", reserva.CabinID) }</td>
+                            
+                            <td>{ reserva.Fecha.Format("02/01/2006") }</td>
+                            
+                            <td>
+                                <form action="/reservations/delete" method="POST" style="margin: 0;">
+                                    
+                                    <input type="hidden" name="cabin_id" value={ fmt.Sprintf("%d", reserva.CabinID) } />
+                                    
+                                    <input type="hidden" name="fecha" value={ reserva.Fecha.Format("2006-01-02") } />
+                                    
+                                    <button type="submit" class="contrast outline" style="padding: 5px 10px; font-size: 0.8rem; width: auto;">
+                                        Eliminar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 }

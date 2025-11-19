@@ -9,13 +9,14 @@ templ Layout(reservations []*domain.Reservation) {
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <title>Reservas de Quincho</title>
             <link
-				rel="stylesheet"
-				href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
-			/>
+                rel="stylesheet"
+                href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+            />
         </head>
         <body>
             <h1 id="titulo-h1" class="titulo-h1">Sistema de Reservas del Quincho</h1>
-            <a href="calendario.html" class="link-volver">Ver Calendario de Reservas</a>
+            
+            <a href="/calendario" class="link-volver">Ver Calendario de Reservas</a>
             
             // aca va el formulario de crear reserva
             @CreateReservationForm()

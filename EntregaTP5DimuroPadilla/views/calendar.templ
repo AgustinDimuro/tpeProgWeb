@@ -1,0 +1,129 @@
+package views
+
+import (
+	"fmt"
+	"tpeProgWeb/application"
+)
+
+// Helper para nombres de meses en el selector
+func getMonthName(m int) string {
+	meses := []string{"", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"}
+	if m >= 1 && m <= 12 {
+		return meses[m]
+	}
+	return ""
+}
+
+templ CalendarPage(monthName string, currentMonthInt int, year int, weeks [][]application.DayView, prevMonth int, prevYear int, nextMonth int, nextYear int) {
+	<!DOCTYPE html>
+	<html lang="es">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>Calendario de Reservas</title>
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
+			<style>
+				.calendar-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+				.calendar-table th { text-align: center; background-color: var(--pico-card-background-color); padding: 10px; }
+				.calendar-table td { height: 100px; vertical-align: top; border: 1px solid var(--pico-muted-border-color); padding: 5px; width: 14.28%; }
+				.day-number { font-weight: bold; display: block; margin-bottom: 5px; }
+				.reservation-badge { background-color: #d64541; color: white; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-bottom: 2px; display: block; text-align: center; }
+				.empty-day { background-color: var(--pico-background-color); opacity: 0.3; }
+
+				/* Estilos nuevos para la navegación */
+				.nav-header {
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					gap: 20px;
+					margin-bottom: 10px;
+				}
+				.nav-arrow {
+					text-decoration: none;
+					font-size: 1.5rem;
+					font-weight: bold;
+					padding: 0 15px;
+					border-radius: 5px;
+				}
+				.nav-arrow:hover {
+					background-color: var(--pico-primary-background);
+					color: white;
+				}
+				.selector-form {
+					display: flex;
+					justify-content: center;
+					gap: 10px;
+					margin-bottom: 20px;
+					align-items: center;
+				}
+				.selector-form select, .selector-form input {
+					width: auto;
+					margin-bottom: 0; /* Override de PicoCSS */
+				}
+			</style>
+		</head>
+		<body>
+			<main class="container">
+				<div style="margin-bottom: 20px;">
+					<a href="/" role="button" class="secondary">← Volver al Inicio</a>
+				</div>
+
+				<div class="nav-header">
+					<a href={ templ.SafeURL(fmt.Sprintf("/calendario?month=%d&year=%d", prevMonth, prevYear)) } 
+					   class="nav-arrow" title="Mes Anterior">
+					   &lt;
+					</a>
+
+					<h1 style="margin:0;">{ monthName } { fmt.Sprintf("%d", year) }</h1>
+
+					<a href={ templ.SafeURL(fmt.Sprintf("/calendario?month=%d&year=%d", nextMonth, nextYear)) } 
+					   class="nav-arrow" title="Mes Siguiente">
+					   &gt;
+					</a>
+				</div>
+
+				<form action="/calendario" method="GET" class="selector-form">
+					<select name="month" aria-label="Seleccionar Mes">
+						for i := 1; i <= 12; i++ {
+							<option value={ fmt.Sprintf("%d", i) } 
+								if i == currentMonthInt {
+									selected
+								}
+							>
+								{ getMonthName(i) }
+							</option>
+						}
+					</select>
+					
+					<input type="number" name="year" value={ fmt.Sprintf("%d", year) } min="2020" max="2030" aria-label="Año" />
+					
+					<button type="submit" class="outline">Ir</button>
+				</form>
+
+				<table class="calendar-table">
+					<thead>
+						<tr><th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th><th>Sáb</th><th>Dom</th></tr>
+					</thead>
+					<tbody>
+						for _, week := range weeks {
+							<tr>
+								for _, day := range week {
+									if day.IsActive {
+										<td>
+											<span class="day-number">{ fmt.Sprintf("%d", day.DayNumber) }</span>
+											for _, res := range day.Reservations {
+												<span class="reservation-badge">Cabaña { fmt.Sprintf("%d", res.CabinID) }</span>
+											}
+										</td>
+									} else {
+										<td class="empty-day"></td>
+									}
+								}
+							</tr>
+						}
+					</tbody>
+				</table>
+			</main>
+		</body>
+	</html>
+}
