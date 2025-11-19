@@ -42,30 +42,23 @@ func main() {
 
 	fmt.Println("Conexión a la base de datos exitosa.")
 
+	// --- INSERCIÓN DE DATOS DE PRUEBA (Opcional: Puedes comentarlo si ya existen) ---
 	fmt.Println("Insertando datos de prueba...")
-
-	// 1. Preparamos las consultas de sqlc
 	dbQueries := dbsqlc.New(conn)
 	ctx := context.Background()
 
-	// 2. Creamos una Cabaña 1
 	cabin1, err := dbQueries.CreateCabin(ctx, dbsqlc.CreateCabinParams{
 		EmailContact: "contacto@cabania1.com",
 		PhoneContact: "123456789",
 		Password:     "secreta",
 	})
 	if err != nil {
-		// Usamos Printf en lugar de Fatal. Si la cabaña ya existe,
-		// la app no se detendrá, solo lo informará.
 		log.Printf("No se pudo crear cabin1 (quizás ya existe): %v", err)
 	} else {
 		fmt.Printf("Cabaña 1 creada con ID: %d\n", cabin1.ID)
-
-		// 3. Creamos una Reserva para la Cabaña 1
-		// (Solo si la cabaña se creó recién)
 		_, err = dbQueries.CreateReservation(ctx, dbsqlc.CreateReservationParams{
 			CabinID: cabin1.ID,
-			Fecha:   time.Now().AddDate(0, 0, 10), // Reserva para 10 días en el futuro
+			Fecha:   time.Now().AddDate(0, 0, 10),
 		})
 		if err != nil {
 			log.Printf("No se pudo crear reserva para cabin1: %v", err)
@@ -73,20 +66,7 @@ func main() {
 			fmt.Println("Reserva 1 creada.")
 		}
 	}
-
-	// 4. Creamos una Cabaña 2
-	cabin2, err := dbQueries.CreateCabin(ctx, dbsqlc.CreateCabinParams{
-		EmailContact: "info@lagoazul.com",
-		PhoneContact: "987654321",
-		Password:     "clave123",
-	})
-	if err != nil {
-		log.Printf("No se pudo crear cabin2 (quizás ya existe): %v", err)
-	} else {
-		fmt.Printf("Cabaña 2 creada con ID: %d\n", cabin2.ID)
-	}
-
-	fmt.Println("Datos de prueba insertados.")
+	// -------------------------------------------------------------------------------
 
 	cabinRepo := db.NewDBCabinRepository(conn)
 	reservationRepo := db.NewDBReservationRepositoryADM(conn)
@@ -100,47 +80,48 @@ func main() {
 	adminHandler := ui.NewAdminHandler(reservationServiceAdm, cabinServiceAdm)
 	userHandler := ui.NewUserHandler(reservationServiceUser, cabinServiceUser)
 
-	// -----------------------------------------------------------------
-	// PASO 5: CONFIGURAR EL ROUTER (UI)
-	// -----------------------------------------------------------------
-	// main.go ya no tiene lógica de negocio, solo enruta las peticiones
-	// a los handlers correctos.
+	// --- NUEVO: Inicializamos el AuthHandler ---
+	authHandler := ui.NewAuthHandler(cabinServiceUser)
 
-	// ---- Rutas de Cabañas (Admin) ----
-
-	http.HandleFunc("/admin/cabins", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			//adminHandler.GetCabinByIDHandler(w, r)
-		case http.MethodPut:
-			adminHandler.UpdateCabinHandler(w, r)
-		default:
+	// -----------------------------------------------------------------
+	// RUTAS PÚBLICAS (Login y Logout)
+	// -----------------------------------------------------------------
+	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			authHandler.HandleLoginShow(w, r)
+		} else if r.Method == http.MethodPost {
+			authHandler.HandleLoginProcess(w, r)
+		} else {
 			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		}
 	})
 
-	// ---- Rutas de Reservas (Admin) ----
-	http.HandleFunc("/admin/reservations", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			adminHandler.GetAllReservationsHandler(w, r)
-		default:
+	http.HandleFunc("/logout", authHandler.HandleLogout)
+
+	// -----------------------------------------------------------------
+	// RUTAS PROTEGIDAS (Usuario) - Envueltas en AuthMiddleware
+	// -----------------------------------------------------------------
+
+	// Página Principal (Dashboard)
+	http.HandleFunc("/", ui.AuthMiddleware(userHandler.HandleShowMainPage))
+
+	// Calendario
+	http.HandleFunc("/calendario", ui.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			userHandler.HandleShowCalendar(w, r)
+		} else {
 			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		}
-	})
-	// ---- Rutas de Reservas (User) ----
-	// Esta ruta maneja todo lo relacionado con las reservas de usuario
-	http.HandleFunc("/reservations", func(w http.ResponseWriter, r *http.Request) {
+	}))
+
+	// Gestión de Reservas
+	http.HandleFunc("/reservations", ui.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			// Verificamos si nos piden una reserva por fecha
 			if r.URL.Query().Get("fecha") != "" {
 				userHandler.GetReservationByDateHandler(w, r)
 			} else {
-				// Si no, podríamos manejar "Get por ID de cabaña" aquí
-				// (Esa función ya la tienes en tu servicio: GetAllReservationsByCabinID)
 				userHandler.GetReservationByDateHandler(w, r)
-				//http.Error(w, "Parámetro 'fecha' (para GET) o método no implementado", http.StatusBadRequest)
 			}
 		case http.MethodPost:
 			userHandler.CreateReservationHandler(w, r)
@@ -149,37 +130,44 @@ func main() {
 		default:
 			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		}
-	})
+	}))
 
-	// Dentro del main(), junto a tus otras rutas
-	http.HandleFunc("/calendario", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
-			userHandler.HandleShowCalendar(w, r)
+	http.HandleFunc("/reservations/update", ui.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			userHandler.UpdateReservationHandler(w, r)
 		} else {
 			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		}
-	})
+	}))
 
-	http.HandleFunc("/reservations/update", func(w http.ResponseWriter, r *http.Request) {
-		println("-----------------------------UPDATE-------------------------------------")
-		switch r.Method {
-		case http.MethodPost:
-			userHandler.UpdateReservationHandler(w, r)
-		default:
-			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-		}
-	})
-
-	http.HandleFunc("/reservations/delete", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/reservations/delete", ui.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			userHandler.DeleteReservationHandler(w, r)
 		} else {
 			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		}
+	}))
+
+	// -----------------------------------------------------------------
+	// RUTAS DE ADMINISTRACIÓN (Admin)
+	// Nota: Por ahora están sin protección o podrías usar el mismo middleware si aplica
+	// -----------------------------------------------------------------
+	http.HandleFunc("/admin/cabins", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPut:
+			adminHandler.UpdateCabinHandler(w, r)
+		default:
+			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		}
 	})
 
-	// Esto en la realidad deberia llevar a un login handler
-	http.HandleFunc("/", userHandler.HandleShowMainPage)
+	http.HandleFunc("/admin/reservations", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			adminHandler.GetAllReservationsHandler(w, r)
+		} else {
+			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		}
+	})
 
 	port := ":8080"
 	fmt.Printf("Servidor escuchando en http://localhost%s\n", port)

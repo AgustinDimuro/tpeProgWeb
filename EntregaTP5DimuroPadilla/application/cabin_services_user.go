@@ -1,6 +1,9 @@
 package application
 
-import "tpeProgWeb/domain"
+import (
+	"errors"
+	"tpeProgWeb/domain"
+)
 
 type CabinServicesUser struct {
 	userRepository domain.CabinUserRepository
@@ -20,4 +23,19 @@ func (service *CabinServicesUser) GetAllCabins() ([]*domain.Cabin, error) {
 
 func (service *CabinServicesUser) UpdateCabin(cabin *domain.Cabin) error {
 	return service.userRepository.UpdateCabin(cabin)
+}
+
+func (service *CabinServicesUser) Authenticate(id int64, password string) (*domain.Cabin, error) {
+	cabin, err := service.userRepository.GetCabinByID(id)
+	if err != nil {
+		return nil, errors.New("credenciales inválidas")
+	}
+
+	// Paso 2: Aplicar regla de negocio (comparación)
+	// Aquí en el futuro cambiaremos "==" por bcrypt.CompareHashAndPassword
+	if cabin.Password != password {
+		return nil, errors.New("credenciales inválidas")
+	}
+
+	return cabin, nil
 }
