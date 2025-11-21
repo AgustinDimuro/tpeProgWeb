@@ -26,16 +26,19 @@ func (service *CabinServicesUser) UpdateCabin(cabin *domain.Cabin) error {
 }
 
 func (service *CabinServicesUser) Authenticate(id int64, password string) (*domain.Cabin, error) {
+	// 1. Buscamos la cabaña en la BD (usando la capa de infraestructura)
 	cabin, err := service.userRepository.GetCabinByID(id)
 	if err != nil {
+		// Si hay error (ej: no existe ID), devolvemos error genérico de seguridad
 		return nil, errors.New("credenciales inválidas")
 	}
 
-	// Paso 2: Aplicar regla de negocio (comparación)
-	// Aquí en el futuro cambiaremos "==" por bcrypt.CompareHashAndPassword
+	// 2. Validamos la contraseña
+	// NOTA: Aquí es donde luego pondremos bcrypt.CompareHashAndPassword
 	if cabin.Password != password {
 		return nil, errors.New("credenciales inválidas")
 	}
 
+	// 3. Si todo ok, devolvemos la cabaña (que incluye el campo Role)
 	return cabin, nil
 }

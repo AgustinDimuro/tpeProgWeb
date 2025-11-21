@@ -11,12 +11,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// Clave secreta para firmar los tokens (En prod debe ir en variable de entorno)
+// CLAVE SECRETA (En producción esto debe ir en variables de entorno)
 var jwtKey = []byte("mi_clave_super_secreta_del_quincho")
 
-// Defines los "Claims" (datos) que irán dentro del token
+// Claims define qué datos guardamos DENTRO del token
 type Claims struct {
-	CabinID int64 `json:"cabin_id"`
+	CabinID int64  `json:"cabin_id"`
+	Role    string `json:"role"` // <--- Importante: Aquí viaja el rol
 	jwt.RegisteredClaims
 }
 
@@ -28,15 +29,20 @@ func NewAuthHandler(service *application.CabinServicesUser) *AuthHandler {
 	return &AuthHandler{CabinService: service}
 }
 
-// 1. Mostrar Formulario de Login
+// 1. GET /login - Muestra el formulario
 func (h *AuthHandler) HandleLoginShow(w http.ResponseWriter, r *http.Request) {
+	// Si ya tiene cookie válida, lo mandamos directo al home
+	if _, err := r.Cookie("token"); err == nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
 	views.Login().Render(r.Context(), w)
 }
 
-// 2. Procesar Login (POST)
+// 2. POST /login - Procesa las credenciales
 func (h *AuthHandler) HandleLoginProcess(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Error form", http.StatusBadRequest)
+		http.Error(w, "Error al procesar formulario", http.StatusBadRequest)
 		return
 	}
 
@@ -45,23 +51,23 @@ func (h *AuthHandler) HandleLoginProcess(w http.ResponseWriter, r *http.Request)
 
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		http.Error(w, "ID inválido", http.StatusBadRequest)
+		views.Login().Render(r.Context(), w) // Podrías pasar un mensaje de error aquí
 		return
 	}
 
-	// Llamamos al servicio de aplicación
+	// --- LLAMADA A LA LÓGICA DE NEGOCIO ---
+	// Esto verifica ID, Pass y nos devuelve el ROL
 	cabin, err := h.CabinService.Authenticate(id, password)
 	if err != nil {
-		// Login fallido
 		http.Error(w, "Credenciales incorrectas", http.StatusUnauthorized)
 		return
-	} // Paso 2: Aplicar regla de negocio (comparación)
-	// Aquí en el futuro cambiaremos "==" por bcrypt.CompareHashAndPassword
+	}
 
-	// --- Generar JWT ---
-	expirationTime := time.Now().Add(24 * time.Hour) // Token válido por 1 día
+	// --- GENERACIÓN DEL JWT ---
+	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &Claims{
 		CabinID: cabin.ID,
+		Role:    cabin.Role, // <--- Guardamos el Rol en el Token
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
@@ -74,41 +80,45 @@ func (h *AuthHandler) HandleLoginProcess(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// --- Guardar en Cookie HttpOnly ---
+	// --- SETEAR COOKIE HTTPONLY ---
 	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
 		Value:    tokenString,
 		Expires:  expirationTime,
-		HttpOnly: true, // Importante: No accesible por JS
-		Path:     "/",  // Disponible en toda la app
+		HttpOnly: true, // Seguridad: JS no puede leer esto
+		Path:     "/",
 		SameSite: http.SameSiteStrictMode,
 	})
 
-	// Redirigir al Home
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	// --- REDIRECCIÓN SEGÚN ROL ---
+	if cabin.Role == "admin" {
+		http.Redirect(w, r, "/admin/reservations", http.StatusSeeOther)
+	} else {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+	}
 }
 
-// 3. Logout
+// 3. GET /logout - Borra la cookie
 func (h *AuthHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
-	// Sobrescribimos la cookie con fecha expirada
 	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
 		Value:    "",
-		Expires:  time.Now().Add(-1 * time.Hour),
+		Expires:  time.Now().Add(-1 * time.Hour), // Fecha en el pasado
 		HttpOnly: true,
 		Path:     "/",
 	})
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
-// 4. Middleware de Protección
+// --- MIDDLEWARES ---
+
+// Middleware GENERAL (Solo verifica que estés logueado)
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Obtenemos la cookie
+		// Validar Cookie
 		c, err := r.Cookie("token")
 		if err != nil {
 			if err == http.ErrNoCookie {
-				// No hay cookie, redirigir a login
 				http.Redirect(w, r, "/login", http.StatusSeeOther)
 				return
 			}
@@ -116,10 +126,9 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
+		// Validar Token
 		tokenStr := c.Value
 		claims := &Claims{}
-
-		// Parsear y validar token
 		tkn, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 			return jwtKey, nil
 		})
@@ -129,9 +138,42 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		// Token válido: Pasamos al siguiente handler
-		// Opcional: Podríamos inyectar el ID en el contexto si lo necesitamos luego
-		ctx := context.WithValue(r.Context(), "cabinID", claims.CabinID)
+		// Inyectar datos en el contexto por si los necesitamos en el handler
+		ctx := context.WithValue(r.Context(), "userRole", claims.Role)
+		ctx = context.WithValue(ctx, "cabinID", claims.CabinID)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	}
+}
+
+// Middleware ADMIN (Verifica logueo Y Rol Admin)
+func AdminMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		c, err := r.Cookie("token")
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+
+		tokenStr := c.Value
+		claims := &Claims{}
+		tkn, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+			return jwtKey, nil
+		})
+
+		if err != nil || !tkn.Valid {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+
+		// --- VERIFICACIÓN DE ROL ---
+		if claims.Role != "admin" {
+			http.Error(w, "Acceso Prohibido: Requiere permisos de Administrador", http.StatusForbidden)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "userRole", claims.Role)
+		ctx = context.WithValue(ctx, "cabinID", claims.CabinID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }

@@ -5,6 +5,7 @@ type Cabin struct {
 	EmailContact string
 	PhoneContact string
 	Password     string
+	Role         string
 }
 
 type CabinADMRepository interface {

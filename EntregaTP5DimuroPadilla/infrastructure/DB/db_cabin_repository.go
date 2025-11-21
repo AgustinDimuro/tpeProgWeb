@@ -18,15 +18,32 @@ func NewDBCabinRepository(db *sql.DB) *DBCabinRepository {
 	return &DBCabinRepository{db: db}
 }
 
+// En db/db_cabin_repository.go
+
 func (repo *DBCabinRepository) CreateCabin(cabin *domain.Cabin) error {
 	dbQueries = db.New(repo.db)
-	_, err := dbQueries.CreateCabin(ctx,
+
+	// Si no viene rol, forzamos 'user' por defecto desde el código Go
+	roleToSave := cabin.Role
+	if roleToSave == "" {
+		roleToSave = "user"
+	}
+
+	newCabinDB, err := dbQueries.CreateCabin(ctx,
 		db.CreateCabinParams{
 			EmailContact: cabin.EmailContact,
 			PhoneContact: cabin.PhoneContact,
 			Password:     cabin.Password,
+			Role:         roleToSave, // <--- Mapeamos el Rol
 		},
 	)
+
+	// Actualizamos el ID y el Rol en el objeto de dominio original
+	if err == nil {
+		cabin.ID = int64(newCabinDB.ID)
+		cabin.Role = newCabinDB.Role
+	}
+
 	return err
 }
 
@@ -41,6 +58,7 @@ func (repo *DBCabinRepository) GetCabinByID(id int64) (*domain.Cabin, error) {
 		EmailContact: cabinDB.EmailContact,
 		PhoneContact: cabinDB.PhoneContact,
 		Password:     cabinDB.Password,
+		Role:         cabinDB.Role, // <--- Mapeamos el Rol
 	}
 	return cabin, nil
 }
@@ -58,6 +76,7 @@ func (repo *DBCabinRepository) GetAllCabins() ([]*domain.Cabin, error) {
 			EmailContact: cabinDB.EmailContact,
 			PhoneContact: cabinDB.PhoneContact,
 			Password:     cabinDB.Password,
+			Role:         cabinDB.Role, // <--- Mapeamos el Rol
 		}
 		cabins = append(cabins, cabin)
 	}
@@ -72,6 +91,7 @@ func (repo *DBCabinRepository) UpdateCabin(cabin *domain.Cabin) error {
 			EmailContact: cabin.EmailContact,
 			PhoneContact: cabin.PhoneContact,
 			Password:     cabin.Password,
+			Role:         cabin.Role, // <--- Mapeamos el Rol
 		},
 	)
 	return err

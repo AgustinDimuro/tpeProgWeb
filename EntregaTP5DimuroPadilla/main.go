@@ -26,6 +26,7 @@ func main() {
 	}
 	defer conn.Close()
 
+	// Reintentos de conexión (útil para docker-compose)
 	maxRetries := 5
 	for i := 0; i < maxRetries; i++ {
 		err = conn.Ping()
@@ -42,32 +43,42 @@ func main() {
 
 	fmt.Println("Conexión a la base de datos exitosa.")
 
-	// --- INSERCIÓN DE DATOS DE PRUEBA (Opcional: Puedes comentarlo si ya existen) ---
+	// =================================================================
+	// 1. DATOS DE PRUEBA (Actualizados con ROL)
+	// =================================================================
 	fmt.Println("Insertando datos de prueba...")
 	dbQueries := dbsqlc.New(conn)
 	ctx := context.Background()
 
-	cabin1, err := dbQueries.CreateCabin(ctx, dbsqlc.CreateCabinParams{
-		EmailContact: "contacto@cabania1.com",
-		PhoneContact: "123456789",
-		Password:     "secreta",
+	// Cabaña Usuario (Role: user)
+	cabinUser, err := dbQueries.CreateCabin(ctx, dbsqlc.CreateCabinParams{
+		EmailContact: "usuario@cabania.com",
+		PhoneContact: "11111111",
+		Password:     "1234", // Contraseña simple para probar
+		Role:         "user", // <--- Rol Usuario
 	})
 	if err != nil {
-		log.Printf("No se pudo crear cabin1 (quizás ya existe): %v", err)
+		log.Printf("Nota: Cabaña Usuario ya existe o error: %v", err)
 	} else {
-		fmt.Printf("Cabaña 1 creada con ID: %d\n", cabin1.ID)
-		_, err = dbQueries.CreateReservation(ctx, dbsqlc.CreateReservationParams{
-			CabinID: cabin1.ID,
-			Fecha:   time.Now().AddDate(0, 0, 10),
-		})
-		if err != nil {
-			log.Printf("No se pudo crear reserva para cabin1: %v", err)
-		} else {
-			fmt.Println("Reserva 1 creada.")
-		}
+		fmt.Printf(">> Creada Cabaña USUARIO (ID: %d, Pass: 1234)\n", cabinUser.ID)
 	}
-	// -------------------------------------------------------------------------------
 
+	// Cabaña Admin (Role: admin)
+	cabinAdmin, err := dbQueries.CreateCabin(ctx, dbsqlc.CreateCabinParams{
+		EmailContact: "admin@sistema.com",
+		PhoneContact: "99999999",
+		Password:     "admin", // Contraseña admin
+		Role:         "admin", // <--- Rol Admin
+	})
+	if err != nil {
+		log.Printf("Nota: Cabaña Admin ya existe o error: %v", err)
+	} else {
+		fmt.Printf(">> Creada Cabaña ADMIN (ID: %d, Pass: admin)\n", cabinAdmin.ID)
+	}
+	fmt.Println("Datos de prueba listos.")
+	// =================================================================
+
+	// 2. INICIALIZACIÓN DE CAPAS
 	cabinRepo := db.NewDBCabinRepository(conn)
 	reservationRepo := db.NewDBReservationRepositoryADM(conn)
 
@@ -77,52 +88,41 @@ func main() {
 	reservationServiceAdm := application.NewReservationServicesADM(reservationRepo)
 	reservationServiceUser := application.NewReservationServicesUser(reservationRepo)
 
+	// Handlers
 	adminHandler := ui.NewAdminHandler(reservationServiceAdm, cabinServiceAdm)
 	userHandler := ui.NewUserHandler(reservationServiceUser, cabinServiceUser)
+	authHandler := ui.NewAuthHandler(cabinServiceUser) // <--- Handler de Auth
 
-	// --- NUEVO: Inicializamos el AuthHandler ---
-	authHandler := ui.NewAuthHandler(cabinServiceUser)
+	// 3. DEFINICIÓN DE RUTAS
+	// =================================================================
 
-	// -----------------------------------------------------------------
-	// RUTAS PÚBLICAS (Login y Logout)
-	// -----------------------------------------------------------------
+	// --- RUTAS PÚBLICAS (Sin protección) ---
 	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			authHandler.HandleLoginShow(w, r)
 		} else if r.Method == http.MethodPost {
 			authHandler.HandleLoginProcess(w, r)
-		} else {
-			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		}
 	})
 
 	http.HandleFunc("/logout", authHandler.HandleLogout)
 
-	// -----------------------------------------------------------------
-	// RUTAS PROTEGIDAS (Usuario) - Envueltas en AuthMiddleware
-	// -----------------------------------------------------------------
+	// --- RUTAS DE USUARIO (Protegidas con AuthMiddleware) ---
+	// Cualquiera logueado (user o admin) puede ver esto, o podrías restringirlo solo a 'user' si quisieras.
+	// Por ahora usamos AuthMiddleware genérico.
 
-	// Página Principal (Dashboard)
 	http.HandleFunc("/", ui.AuthMiddleware(userHandler.HandleShowMainPage))
 
-	// Calendario
 	http.HandleFunc("/calendario", ui.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			userHandler.HandleShowCalendar(w, r)
-		} else {
-			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		}
 	}))
 
-	// Gestión de Reservas
 	http.HandleFunc("/reservations", ui.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			if r.URL.Query().Get("fecha") != "" {
-				userHandler.GetReservationByDateHandler(w, r)
-			} else {
-				userHandler.GetReservationByDateHandler(w, r)
-			}
+			userHandler.GetReservationByDateHandler(w, r)
 		case http.MethodPost:
 			userHandler.CreateReservationHandler(w, r)
 		case http.MethodDelete:
@@ -135,40 +135,31 @@ func main() {
 	http.HandleFunc("/reservations/update", ui.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			userHandler.UpdateReservationHandler(w, r)
-		} else {
-			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		}
 	}))
 
 	http.HandleFunc("/reservations/delete", ui.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			userHandler.DeleteReservationHandler(w, r)
-		} else {
-			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		}
 	}))
 
-	// -----------------------------------------------------------------
-	// RUTAS DE ADMINISTRACIÓN (Admin)
-	// Nota: Por ahora están sin protección o podrías usar el mismo middleware si aplica
-	// -----------------------------------------------------------------
-	http.HandleFunc("/admin/cabins", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPut:
-			adminHandler.UpdateCabinHandler(w, r)
-		default:
-			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-		}
-	})
+	// --- RUTAS DE ADMIN (Protegidas con AdminMiddleware) ---
+	// Solo accesible si role == "admin"
 
-	http.HandleFunc("/admin/reservations", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/admin/reservations", ui.AdminMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			adminHandler.GetAllReservationsHandler(w, r)
-		} else {
-			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		}
-	})
+	}))
 
+	http.HandleFunc("/admin/cabins", ui.AdminMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPut {
+			adminHandler.UpdateCabinHandler(w, r)
+		}
+	}))
+
+	// =================================================================
 	port := ":8080"
 	fmt.Printf("Servidor escuchando en http://localhost%s\n", port)
 

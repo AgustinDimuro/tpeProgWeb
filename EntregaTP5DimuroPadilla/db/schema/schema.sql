@@ -1,13 +1,11 @@
 -- db/schema.sql
--- Esquema para reservas de un quincho (un solo recurso) donde:
--- * La reserva es de un día completo (columna fecha DATE).
--- * Solo una cabaña (cabin) puede reservar por día (UNIQUE(fecha)).
 
 CREATE TABLE IF NOT EXISTS cabins (
   id             SERIAL PRIMARY KEY,
   email_contact  TEXT    NOT NULL CHECK (position('@' in email_contact) > 1),
   phone_contact  TEXT    NOT NULL,
   password       TEXT    NOT NULL,
+  role           TEXT    NOT NULL DEFAULT 'user', -- <--- ESTA ES LA LÍNEA QUE FALTA
   created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -22,4 +20,3 @@ CREATE TABLE IF NOT EXISTS reservations (
 -- Índices útiles
 CREATE INDEX IF NOT EXISTS idx_reservations_cabin_id ON reservations(cabin_id);
 CREATE INDEX IF NOT EXISTS idx_reservations_fecha ON reservations(fecha);
-

@@ -13,6 +13,7 @@ type Cabin struct {
 	EmailContact string    `json:"email_contact"`
 	PhoneContact string    `json:"phone_contact"`
 	Password     string    `json:"password"`
+	Role         string    `json:"role"`
 	CreatedAt    time.Time `json:"created_at"`
 }
 

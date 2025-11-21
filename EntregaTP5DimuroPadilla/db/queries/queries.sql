@@ -1,8 +1,8 @@
 --                              CRUD de cabins
 
 -- name: CreateCabin :one
-INSERT INTO cabins (email_contact, phone_contact, password)
-VALUES ($1, $2, $3)
+INSERT INTO cabins (email_contact, phone_contact, password, role)
+VALUES ($1, $2, $3, $4)
 RETURNING *;
 
 -- name: GetCabin :one
@@ -15,7 +15,8 @@ SELECT * FROM cabins ORDER BY id;
 UPDATE cabins
 SET email_contact = $2,
     phone_contact = $3,
-    password = $4
+    password = $4,
+    role = $5
 WHERE id = $1
 RETURNING *;
 

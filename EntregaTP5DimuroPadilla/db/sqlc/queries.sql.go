@@ -12,26 +12,33 @@ import (
 
 const createCabin = `-- name: CreateCabin :one
 
-INSERT INTO cabins (email_contact, phone_contact, password)
-VALUES ($1, $2, $3)
-RETURNING id, email_contact, phone_contact, password, created_at
+INSERT INTO cabins (email_contact, phone_contact, password, role)
+VALUES ($1, $2, $3, $4)
+RETURNING id, email_contact, phone_contact, password, role, created_at
 `
 
 type CreateCabinParams struct {
 	EmailContact string `json:"email_contact"`
 	PhoneContact string `json:"phone_contact"`
 	Password     string `json:"password"`
+	Role         string `json:"role"`
 }
 
 // CRUD de cabins
 func (q *Queries) CreateCabin(ctx context.Context, arg CreateCabinParams) (Cabin, error) {
-	row := q.db.QueryRowContext(ctx, createCabin, arg.EmailContact, arg.PhoneContact, arg.Password)
+	row := q.db.QueryRowContext(ctx, createCabin,
+		arg.EmailContact,
+		arg.PhoneContact,
+		arg.Password,
+		arg.Role,
+	)
 	var i Cabin
 	err := row.Scan(
 		&i.ID,
 		&i.EmailContact,
 		&i.PhoneContact,
 		&i.Password,
+		&i.Role,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -87,7 +94,7 @@ func (q *Queries) DeleteReservation(ctx context.Context, arg DeleteReservationPa
 }
 
 const getCabin = `-- name: GetCabin :one
-SELECT id, email_contact, phone_contact, password, created_at FROM cabins WHERE id = $1
+SELECT id, email_contact, phone_contact, password, role, created_at FROM cabins WHERE id = $1
 `
 
 func (q *Queries) GetCabin(ctx context.Context, id int32) (Cabin, error) {
@@ -98,6 +105,7 @@ func (q *Queries) GetCabin(ctx context.Context, id int32) (Cabin, error) {
 		&i.EmailContact,
 		&i.PhoneContact,
 		&i.Password,
+		&i.Role,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -150,7 +158,7 @@ func (q *Queries) IsFechaDisponible(ctx context.Context, fecha time.Time) (bool,
 }
 
 const listCabins = `-- name: ListCabins :many
-SELECT id, email_contact, phone_contact, password, created_at FROM cabins ORDER BY id
+SELECT id, email_contact, phone_contact, password, role, created_at FROM cabins ORDER BY id
 `
 
 func (q *Queries) ListCabins(ctx context.Context) ([]Cabin, error) {
@@ -167,6 +175,7 @@ func (q *Queries) ListCabins(ctx context.Context) ([]Cabin, error) {
 			&i.EmailContact,
 			&i.PhoneContact,
 			&i.Password,
+			&i.Role,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -267,9 +276,10 @@ const updateCabin = `-- name: UpdateCabin :one
 UPDATE cabins
 SET email_contact = $2,
     phone_contact = $3,
-    password = $4
+    password = $4,
+    role = $5
 WHERE id = $1
-RETURNING id, email_contact, phone_contact, password, created_at
+RETURNING id, email_contact, phone_contact, password, role, created_at
 `
 
 type UpdateCabinParams struct {
@@ -277,6 +287,7 @@ type UpdateCabinParams struct {
 	EmailContact string `json:"email_contact"`
 	PhoneContact string `json:"phone_contact"`
 	Password     string `json:"password"`
+	Role         string `json:"role"`
 }
 
 func (q *Queries) UpdateCabin(ctx context.Context, arg UpdateCabinParams) (Cabin, error) {
@@ -285,6 +296,7 @@ func (q *Queries) UpdateCabin(ctx context.Context, arg UpdateCabinParams) (Cabin
 		arg.EmailContact,
 		arg.PhoneContact,
 		arg.Password,
+		arg.Role,
 	)
 	var i Cabin
 	err := row.Scan(
@@ -292,6 +304,7 @@ func (q *Queries) UpdateCabin(ctx context.Context, arg UpdateCabinParams) (Cabin
 		&i.EmailContact,
 		&i.PhoneContact,
 		&i.Password,
+		&i.Role,
 		&i.CreatedAt,
 	)
 	return i, err
