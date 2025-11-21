@@ -20,6 +20,7 @@ Adicionalmente, modificamos todos los handlers (ubicados en la cada de Infraestr
 Dejamos precargadas dos usuarios para asi poder probar la funcionalidad del sistema correctamente, estos dos usuarios son los siguientes:
 - ID = 1
 - Password = 1234
+
 Usuario administrador:
 - ID = 2
 - Password = admin
