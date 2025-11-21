@@ -26,7 +26,7 @@ func main() {
 	}
 	defer conn.Close()
 
-	// Reintentos de conexión (útil para docker-compose)
+	// Reintentos de conexión
 	maxRetries := 5
 	for i := 0; i < maxRetries; i++ {
 		err = conn.Ping()
@@ -44,7 +44,7 @@ func main() {
 	fmt.Println("Conexión a la base de datos exitosa.")
 
 	// =================================================================
-	// 1. DATOS DE PRUEBA (Actualizados con ROL)
+	// 1. DATOS DE PRUEBA
 	// =================================================================
 	fmt.Println("Insertando datos de prueba...")
 	dbQueries := dbsqlc.New(conn)
@@ -54,8 +54,8 @@ func main() {
 	cabinUser, err := dbQueries.CreateCabin(ctx, dbsqlc.CreateCabinParams{
 		EmailContact: "usuario@cabania.com",
 		PhoneContact: "11111111",
-		Password:     "1234", // Contraseña simple para probar
-		Role:         "user", // <--- Rol Usuario
+		Password:     "1234",
+		Role:         "user",
 	})
 	if err != nil {
 		log.Printf("Nota: Cabaña Usuario ya existe o error: %v", err)
@@ -67,8 +67,8 @@ func main() {
 	cabinAdmin, err := dbQueries.CreateCabin(ctx, dbsqlc.CreateCabinParams{
 		EmailContact: "admin@sistema.com",
 		PhoneContact: "99999999",
-		Password:     "admin", // Contraseña admin
-		Role:         "admin", // <--- Rol Admin
+		Password:     "admin",
+		Role:         "admin",
 	})
 	if err != nil {
 		log.Printf("Nota: Cabaña Admin ya existe o error: %v", err)
@@ -108,8 +108,7 @@ func main() {
 	http.HandleFunc("/logout", authHandler.HandleLogout)
 
 	// --- RUTAS DE USUARIO (Protegidas con AuthMiddleware) ---
-	// Cualquiera logueado (user o admin) puede ver esto, o podrías restringirlo solo a 'user' si quisieras.
-	// Por ahora usamos AuthMiddleware genérico.
+	// Cualquiera logueado (user o admin) puede ver esto.
 
 	http.HandleFunc("/", ui.AuthMiddleware(userHandler.HandleShowMainPage))
 

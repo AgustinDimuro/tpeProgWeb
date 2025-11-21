@@ -1,6 +1,6 @@
-# TPEProgWebEntregaTP3y4
+# TPEProgWebEntregaTP5
 
-En este repositorio se encontrará la resolución de los incisos solicitados para la entrega referente al **Trabajo Práctico Especial de Programación Web** en el **Trabajo Práctico 3 y en el Trabajo Práctico 4**.  
+En este repositorio se encontrará la resolución de los incisos solicitados para la entrega referente al **Trabajo Práctico Especial de Programación Web** en el **Trabajo Práctico 5**.  
 
 Los integrantes del grupo son:  
 - Agustín Nicolás Dimuro  
@@ -8,73 +8,61 @@ Los integrantes del grupo son:
 
 ---
 
-## Descripción de resoluciones implementadas para el Trabajo Práctico 3
+## Descripción de resoluciones implementadas para el Trabajo Práctico 5
 
-### Conexión a la base de datos
-El primer paso que realizamos fue conectar nuestra aplicación con la base de datos creada dirante la resolución del Trabajo Práctico 2.
-Para ello agregamos funciones encargadas de realizar las operaciones de creación, modificación, borrado y lectura de datos tanto para la tabla de usuarios como para la tabla de reservas. Estas funciones se comunican con la base de datos a través de las funciones creadas por SQLC. Para que el usuario de nuestra aplicación pueda realizar las dichas acciones sobre la base de datos, creamos handlers que se encargan de procesar las solictudes o los datos que llegan por HTTP mediante los metodos GET, PUT y DELETE. 
+### Cambios en la arquitectura
+Como primer cambio estructural, decidimos adoptar la Onion Architecture con el objetivo de eliminar dependencias y reducir el fuerte acoplamiento de la logica de negocio con la tecnologias utilizadas, como la base de datos. Para lograr esto se establecieron las soguientes capas: Infraestructura, Aplicacion, Dominio y Entidades, asignando a cada una las responsabilidades necesarias para el correcto funcionamiento de la aplicacion.
+Adicionalmente, modificamos todos los handlers (ubicados en la cada de Infraestructura), para que ya no manejen JSON y en cambio utilicen templ para implementar Server-Side Rendering. Para que esto sea posible se crearon archivos .templ en la seccion de views que determinan los componentes principales de la pagina web, los cuales son utilizados por los handlers previamente mencionados para poder generar dinamicamente el HTML completo que va a ser enviado al usuario.
+
+---
+
+### Aclaracion
+Dejamos precargadas dos usuarios para asi poder probar la funcionalidad del sistema correctamente, estos dos usuarios son los siguientes:
+- ID = 1
+- Password = 1234
+Usuario administrador:
+- ID = 2
+- Password = admin
 
 ---
 
 ### ¿Cómo pruebo la aplicación?
 
 1. Clonar el repositorio.  
-2. Abrir una terminal y navegar hasta el directorio **`TPEProgWebEntregaTP4`** (podés usar `ls` para listar directorios y luego `cd` para entrar).  
+2. Abrir una terminal y navegar hasta el directorio **`TPEProgWebEntregaTP5`** (podés usar `ls` para listar directorios y luego `cd` para entrar).  
 3. Inicializar el docker, base de datos en PostgreSQL y generar el código necesario con sqlc mediante el comando:
    
    ```bash
    make start
    ```
 
-   Luego de ejecutado este comando, se realizará la descarga de la imagen de PostgreSQL para el docker compose en caso de que no esté descargada en su dispositivo. Del mismo modo, se ejecutará el comando `sqlc generate` y se generará el código pertinente para las queries.  
+   Luego de ejecutado este comando, se realizará la descarga de la imagen de PostgreSQL para el docker compose en caso de que no esté descargada en su dispositivo. Del mismo modo, se ejecutará el comando `sqlc generate` y se generará el código pertinente para las queries.
 
-   Por último, se ejecutará el `main.go` preparado para que pueda observar una prueba realizada sobre la base de datos en la cuál se creará una cabaña, se creará una reserva, se listarán tanto la reserva como la cabaña, y por último se preguntará si dada una fecha existe una reserva.  
+   A su vez, luego de generado el sqlc se ejecutara el comando templ dentro del Makefile que tiene como trabajo principal ejecutar el comando templ generate para transformar los archivos .templ a .go y que puedan ser utilizados por la  aplicacion.  
+
+   Por último, se ejecutará el `main.go` con datos precargados manualmente con el fin de facilitar la prueba del servicio. 
 4. Para poder realizar las pruebas que preparamos para realizar un testeo  de la aplicación se puede ejecutar el siguiente comando en una consola distinta a la que el fue ejecutado el servidor:
-   ```bash
-   make hurl
-   ```
-   Este comando realizará las pruebas que estan almacenadas en el archivo requests.hurl. Dentro de dicho archivo se encuentran las siguientes pruebas:
-      - Obtención de una cabaña que ya está cargada en el sistema y chequeo de que sea la cabaña pedida.
-      - Actualización de datos de la cabaña.
-      - Verificación que las modificaciones previas fueron realizadas de forma exitosa.
-      - Intento de obtener cabaña inexistente.
-      - Creación de nueva reserva.
-      - Obtención de la reserva recién creada.
-      - Actualización sobre el atributo fecha de la reserva creada recientemente.
-      - Eliminación de la reserva.
-      - Verificación que la reserva se eliminó correctamente.
-      - Verificación de que la aplicación detecte un incorrecto formato en la fecha de una reserva.
-      - Verificación de que la aplicación detecte un incorrecto formato en el ID de una cabaña.
-      - Verificación de que la aplicación detecte un metodo incorrecto al intentar conectarse a un endpoint.
-      - Lista todas las reservas a menos que no haya ninguna.
-
-   Si desea ver las mismas pruebas pero en el modo de testeo del comando hurl, puede ejecutar:
-   
    ```bash
    make hurltest
    ```
+   Este comando realizará las pruebas que estan almacenadas en el archivo requests.hurl. Dentro de dicho archivo se encuentran las siguientes pruebas:
+   - Carga de la página de Login y verificación de respuesta HTML.
+   - Inicio de sesión exitoso y captura automática de la cookie de autenticación.
+   - Acceso autorizado al Dashboard principal utilizando la sesión capturada.
+   - Creación de una nueva reserva mediante envío de formulario.
+   - Verificación visual de que la reserva creada aparece renderizada en el HTML.
+   - Actualización de la fecha de la reserva existente.
+   - Verificación de que la fecha vieja desaparece y la nueva se muestra correctamente.
+   - Eliminación de la reserva del sistema.
+   - Confirmación de que la reserva eliminada ya no se renderiza en el listado.
+   - Carga correcta de la vista del calendario.
+   - Navegación y filtrado del calendario por mes y año específicos.
+   - Acceso al listado general de reservas en la vista de administrador.
+   - Actualización de los datos de la cabaña (email, teléfono y contraseña).
+   - Ejecución del logout e invalidación de la sesión.
+   - Verificación de seguridad (bloqueo de acceso) al intentar entrar sin sesión.   
+
    Debería poder observar que al ejecutar este comando hurl le devuelve como resultado "Success". 
----
-
-## Descripción de resoluciones implementadas para el Trabajo Práctico 4
-
-### Estructura HTML
-Al acceder a la página web se podran observar tres secciones. En la primer sección se puede encontrar tanto el título de la página, como un link de redireccionamiento hacia el calendario donde se podran ver las reservas. Para el caso de la segunda sección, es la encargada de implementar la creación de reservas. Por último, la tercer sección se pueden realizar modificaciones sobre las fechas de reservas existentes. A su vez, se pueden observar en forma de lista las reservas ya creadas, las cuales se actualizará dinámicamente para el caso de que se agrege o modifique una reserva.
-
-### Comunicación entre la API y JavaScript
-
-Para la comunicación entre el frontend (HTML) y la API REST, se utiliza el archivo `app.js`. Este script se encarga de manejar toda la interactividad de la página y las solicitudes de datos.
-
-* **Obtención de datos (Read):** Al cargar la página, se ejecuta la función `getReservations`. Esta función realiza una petición `GET` al endpoint `/reservations` para obtener el listado completo de reservas y las muestra dinámicamente en la lista.
-* **Creación de reservas (Create):** El formulario "form-crear-reserva" es manejado por un *event listener*. Al enviarlo, se capturan los datos (`cabin_id` y `fecha`) y se realiza una petición `POST` al endpoint `/reservation` para crear la nueva reserva.
-* **Actualización de reservas (Update):** De forma similar, el formulario "form-actualizar-reserva" envía una petición `PUT` al endpoint `/reservation` para modificar la fecha de una reserva existente.
-* **Eliminación de reservas (Delete):** Cada reserva en la lista tiene un botón "Eliminar" propio. Al hacer clic, la función `eliminarReserva` ejecuta una petición `DELETE` al endpoint `/reservation` para borrarla.
-
-Todas las operaciones se realizan de forma asíncrona usando `async/await` con la API `fetch`. Después de cada operación exitosa (crear, actualizar o eliminar), se vuelve a llamar a `getReservations()` para refrescar la lista de reservas en el HTML, asegurando que el usuario siempre vea los datos actualizados.
-
-### ¿Cómo pruebo la aplicación?
-Si ya fue iniciado el servidor no es necesario realizar nada adicional. En caso contrario, se pueden seguir los pasos mencionados en la sección de mismo nombre dentro de las Descripciones de resoluciones implemmentadas para el Trabajo Práctico 3. Tener en cuenta que no es necesario ejecutar el "make hurl".
-Una vez inicializado el servidor, acceda detro de su navegador al siguiente link "http://localhost:8080/". Allí verá la aplicación descripta anteriormente. Otro punto a tener en cuenta es que las cabañas que ya estan cargadas son la cabaña de ID 1 e ID 2, si desea probar con otra cabaña deberá crearla previamente.
 
 ---
 ## Requisitos previos
@@ -83,8 +71,4 @@ Una vez inicializado el servidor, acceda detro de su navegador al siguiente link
 - Git (para clonar el repositorio)  
 - SQLC (para poder generar el código)
 - hurl
-
----
-
-
-
+- templ

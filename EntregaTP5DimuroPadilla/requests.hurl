@@ -1,55 +1,46 @@
 # ------------------------------------------------------
-# 1. FLUJO DE AUTENTICACIÓN (Login)
+# 1.Login
 # ------------------------------------------------------
 
-# Accedemos al formulario de login (GET) para verificar que carga
 GET http://localhost:8080/login
 HTTP 200
 [Asserts]
 header "Content-Type" contains "text/html"
 
-# Enviamos las credenciales (POST) - Simulando el submit del form
-# Usamos cabin_id=1 y password="secreta" definidos en tu main.go
 POST http://localhost:8080/login
 [FormParams]
-cabin_id: 1
-password: secreta
+cabin_id: 2
+password: admin
 HTTP 303
 [Captures]
-# CAPTURAMOS LA COOKIE: Es vital para las siguientes peticiones protegidas
 auth_token: cookie "token"
 
 # ------------------------------------------------------
-# 2. RUTAS PROTEGIDAS (Usuario)
+# 2. Rutas de Usuario
 # ------------------------------------------------------
 
-# Acceder al Dashboard (Home) con la cookie capturada
 GET http://localhost:8080/
 [Cookies]
 token: {{auth_token}}
 HTTP 200
 [Asserts]
 header "Content-Type" contains "text/html"
-# Verificamos que cargó algo típico del dashboard, ej: "Reservas"
 body contains "Reservas" 
 
 # ------------------------------------------------------
-# 3. GESTIÓN DE RESERVAS (Crear, Actualizar, Borrar)
+# 3. Gestión de Reservas
 # ------------------------------------------------------
 
 # A. CREAR RESERVA (POST)
-# Nota: Usamos una fecha futura lejana para evitar conflicto con validaciones
 POST http://localhost:8080/reservations
 [Cookies]
 token: {{auth_token}}
 [FormParams]
 cabin_id: 1
 fecha: 2025-12-25
-HTTP 303 
-# Esperamos 303 See Other porque tu handler hace un http.Redirect al final
+HTTP 303
 
-# B. VERIFICAR CREACIÓN (GET)
-# Vamos al home y buscamos si la fecha aparece en el HTML renderizado
+# B. VERIFICAR CREACIÓN
 GET http://localhost:8080/
 [Cookies]
 token: {{auth_token}}
@@ -57,7 +48,7 @@ HTTP 200
 [Asserts]
 body contains "2025-12-25"
 
-# C. ACTUALIZAR RESERVA (POST a /reservations/update)
+# C. ACTUALIZAR RESERVA
 POST http://localhost:8080/reservations/update
 [Cookies]
 token: {{auth_token}}
@@ -67,18 +58,16 @@ fecha: 2025-12-25
 fecha_nueva: 2025-12-31
 HTTP 303
 
-# D. VERIFICAR ACTUALIZACIÓN (GET)
+# D. VERIFICAR ACTUALIZACIÓN
 GET http://localhost:8080/
 [Cookies]
 token: {{auth_token}}
 HTTP 200
 [Asserts]
-# La fecha vieja ya no debería estar
 body not contains "2025-12-25"
-# La fecha nueva sí debería estar
 body contains "2025-12-31"
 
-# E. ELIMINAR RESERVA (POST a /reservations/delete)
+# E. ELIMINAR RESERVA
 POST http://localhost:8080/reservations/delete
 [Cookies]
 token: {{auth_token}}
@@ -87,7 +76,7 @@ cabin_id: 1
 fecha: 2025-12-31
 HTTP 303
 
-# F. VERIFICAR ELIMINACIÓN (GET)
+# F. VERIFICAR ELIMINACIÓN
 GET http://localhost:8080/
 [Cookies]
 token: {{auth_token}}
@@ -96,7 +85,7 @@ HTTP 200
 body not contains "2025-12-31"
 
 # ------------------------------------------------------
-# 4. CALENDARIO
+# 4. Calendario
 # ------------------------------------------------------
 
 GET http://localhost:8080/calendario
@@ -106,7 +95,6 @@ HTTP 200
 [Asserts]
 header "Content-Type" contains "text/html"
 
-# Probar navegación del calendario (query params)
 GET http://localhost:8080/calendario?month=1&year=2026
 [Cookies]
 token: {{auth_token}}
@@ -116,19 +104,16 @@ body contains "Enero"
 body contains "2026"
 
 # ------------------------------------------------------
-# 5. ADMINISTRACIÓN (Admin)
+# 5. Rutas de Admin
 # ------------------------------------------------------
 
-# Listar reservas (Admin)
+# Listar reservas
 GET http://localhost:8080/admin/reservations
 HTTP 200
 [Asserts]
 header "Content-Type" contains "text/html"
 
-# Actualizar Cabaña (PUT)
-# Nota: Aunque HTML puro no soporta PUT en forms sin JS, 
-# tu main.go escucha explícitamente PUT en "/admin/cabins".
-# Hurl sí puede enviar PUT.
+# Actualizar Cabaña
 PUT http://localhost:8080/admin/cabins
 [FormParams]
 id: 1
@@ -138,18 +123,14 @@ password: nueva_password
 HTTP 303
 
 # ------------------------------------------------------
-# 6. LOGOUT
+# 6. Logout
 # ------------------------------------------------------
 
 GET http://localhost:8080/logout
 HTTP 303
-# Debería redirigir al login
 
 # Verificar que ya no podemos entrar al home
 GET http://localhost:8080/
-# Importante: Aquí no enviamos la cookie porque el navegador la habría borrado
-# o enviamos una caducada. Hurl no guarda estado entre requests salvo que usemos variables.
-# Sin la cookie, el middleware debería redirigirnos al login (303)
 HTTP 303
 [Asserts]
 header "Location" contains "/login"

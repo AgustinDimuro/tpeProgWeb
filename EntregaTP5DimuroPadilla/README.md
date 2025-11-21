@@ -1,4 +1,4 @@
-# TPEProgWebEntregaTP3y4
+# TPEProgWebEntregaTP5
 
 En este repositorio se encontrará la resolución de los incisos solicitados para la entrega referente al **Trabajo Práctico Especial de Programación Web** en el **Trabajo Práctico 5**.  
 
@@ -16,6 +16,16 @@ Adicionalmente, modificamos todos los handlers (ubicados en la cada de Infraestr
 
 ---
 
+### Aclaracion
+Dejamos precargadas dos usuarios para asi poder probar la funcionalidad del sistema correctamente, estos dos usuarios son los siguientes:
+- ID = 1
+- Password = 1234
+Usuario administrador:
+- ID = 2
+- Password = admin
+
+---
+
 ### ¿Cómo pruebo la aplicación?
 
 1. Clonar el repositorio.  
@@ -30,31 +40,28 @@ Adicionalmente, modificamos todos los handlers (ubicados en la cada de Infraestr
 
    A su vez, luego de generado el sqlc se ejecutara el comando templ dentro del Makefile que tiene como trabajo principal ejecutar el comando templ generate para transformar los archivos .templ a .go y que puedan ser utilizados por la  aplicacion.  
 
-   Por último, se ejecutará el `main.go` preparado para que pueda observar una prueba realizada sobre la base de datos en la cuál se creará una cabaña, se creará una reserva, se listarán tanto la reserva como la cabaña, y por último se preguntará si dada una fecha existe una reserva.  
+   Por último, se ejecutará el `main.go` con datos precargados manualmente con el fin de facilitar la prueba del servicio. 
 4. Para poder realizar las pruebas que preparamos para realizar un testeo  de la aplicación se puede ejecutar el siguiente comando en una consola distinta a la que el fue ejecutado el servidor:
-   ```bash
-   make hurl
-   ```
-   Este comando realizará las pruebas que estan almacenadas en el archivo requests.hurl. Dentro de dicho archivo se encuentran las siguientes pruebas:
-      - Obtención de una cabaña que ya está cargada en el sistema y chequeo de que sea la cabaña pedida.
-      - Actualización de datos de la cabaña.
-      - Verificación que las modificaciones previas fueron realizadas de forma exitosa.
-      - Intento de obtener cabaña inexistente.
-      - Creación de nueva reserva.
-      - Obtención de la reserva recién creada.
-      - Actualización sobre el atributo fecha de la reserva creada recientemente.
-      - Eliminación de la reserva.
-      - Verificación que la reserva se eliminó correctamente.
-      - Verificación de que la aplicación detecte un incorrecto formato en la fecha de una reserva.
-      - Verificación de que la aplicación detecte un incorrecto formato en el ID de una cabaña.
-      - Verificación de que la aplicación detecte un metodo incorrecto al intentar conectarse a un endpoint.
-      - Lista todas las reservas a menos que no haya ninguna.
-
-   Si desea ver las mismas pruebas pero en el modo de testeo del comando hurl, puede ejecutar:
-   
    ```bash
    make hurltest
    ```
+   Este comando realizará las pruebas que estan almacenadas en el archivo requests.hurl. Dentro de dicho archivo se encuentran las siguientes pruebas:
+   - Carga de la página de Login y verificación de respuesta HTML.
+   - Inicio de sesión exitoso y captura automática de la cookie de autenticación.
+   - Acceso autorizado al Dashboard principal utilizando la sesión capturada.
+   - Creación de una nueva reserva mediante envío de formulario.
+   - Verificación visual de que la reserva creada aparece renderizada en el HTML.
+   - Actualización de la fecha de la reserva existente.
+   - Verificación de que la fecha vieja desaparece y la nueva se muestra correctamente.
+   - Eliminación de la reserva del sistema.
+   - Confirmación de que la reserva eliminada ya no se renderiza en el listado.
+   - Carga correcta de la vista del calendario.
+   - Navegación y filtrado del calendario por mes y año específicos.
+   - Acceso al listado general de reservas en la vista de administrador.
+   - Actualización de los datos de la cabaña (email, teléfono y contraseña).
+   - Ejecución del logout e invalidación de la sesión.
+   - Verificación de seguridad (bloqueo de acceso) al intentar entrar sin sesión.   
+
    Debería poder observar que al ejecutar este comando hurl le devuelve como resultado "Success". 
 
 ---
