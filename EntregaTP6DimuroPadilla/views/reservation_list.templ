@@ -1,0 +1,48 @@
+package views
+
+import "tpeProgWeb/domain"
+import "fmt"
+
+templ ReservationList(reservations []*domain.Reservation) {
+    <div id="reservation-list-container" class="overflow-auto">
+        
+        if len(reservations) == 0 {
+            <article style="text-align: center;">
+                <h4>No hay reservas</h4>
+                <p>No se encontraron reservas para mostrar.</p>
+            </article>
+        } else {
+            <table class="striped">
+                <thead>
+                    <tr>
+                        <th>Cabin</th>
+                        <th>Date</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    for _, reserva := range reservations {
+                        <tr>
+                            <td>{ fmt.Sprintf("%d", reserva.CabinID) }</td>
+                            
+                            <td>{ reserva.Fecha.Format("02/01/2006") }</td>
+                            
+                            // El botón debe ir dentro de un TD para que sea HTML válido
+                            <td>
+                                <button 
+                                    hx-delete={ fmt.Sprintf("/reservations?cabin_id=%d&fecha=%s", reserva.CabinID, reserva.Fecha.Format("2006-01-02")) }
+                                    hx-target="closest tr"
+                                    hx-swap="outerHTML"
+                                    hx-confirm="¿Estás seguro de que deseas eliminar esta reserva?"
+                                    class="contrast outline" 
+                                    style="padding: 5px 10px; font-size: 0.8rem; width: auto;">
+                                    Eliminar
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+}

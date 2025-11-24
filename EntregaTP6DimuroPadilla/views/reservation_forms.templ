@@ -1,0 +1,53 @@
+package views
+
+templ CreateReservationForm() {
+    <h2 id="titulo-h2" class="titulo-h2">Nueva reserva</h2>
+    <form   id="form-crear-reserva" 
+            class="form-crear-reserva" 
+            hx-post="/reservations" 
+            hx-target="#reservation-list-container" 
+            hx-swap="outerHTML"
+            hx-on::after-request="if(event.detail.successful) this.reset()">
+            
+        <div class="form-control">
+            <label for="new-cabin-id">Cabin ID</label>
+            <input type="number" id="new-cabin-id" name="cabin_id" placeholder="Cabin ID" required />
+        </div>
+        <div class="form-control">
+            <label for="new-fecha">Fecha</label>
+            <input type="date" id="new-fecha" name="fecha" required />
+        </div>
+        <div class="form-control">
+            <label class="label-fantasma">&nbsp;</label>
+            <button type="submit">Crear</button>
+        </div>
+    </form>
+}
+
+templ UpdateReservationForm() {
+    <h2 id="titulo-h2" class="titulo-h2">Actualizar reserva</h2>
+    <form   id="form-actualizar-reserva" 
+            class="form-actualizar-reserva"
+            hx-post="/reservations/update" 
+            hx-target="#reservation-list-container" 
+            hx-swap="outerHTML"
+            hx-on::after-request="if(event.detail.successful) this.reset()">
+
+        <div class="form-control">
+            <label for="update-cabin-id">Cabin ID</label>
+            <input type="number" id="update-cabin-id" name="cabin_id" placeholder="Cabin ID" required />
+        </div>
+        <div class="form-control">
+            <label for="fecha-actual">Fecha actual de la reserva</label>
+            <input type="date" id="fecha-actual" name="fecha" required />
+        </div>
+        <div class="form-control">
+            <label for="fecha-nueva">Nueva fecha</label>
+            <input type="date" id="fecha-nueva" name="fecha_nueva" required />
+        </div>
+        <div class="form-control">
+            <label class="label-fantasma">&nbsp;</label>
+            <button type="submit">Actualizar</button>
+        </div>
+    </form>
+}

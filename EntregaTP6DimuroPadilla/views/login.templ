@@ -1,0 +1,52 @@
+package views
+
+templ Login() {
+	<!DOCTYPE html>
+	<html lang="es">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>Ingreso al Sistema - Cabañas</title>
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
+			<style>
+				/* Un poco de estilo extra para centrar el login */
+				body {
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					min-height: 100vh;
+					background-color: var(--pico-background-color);
+				}
+				.login-container {
+					width: 100%;
+					max-width: 400px;
+					padding: 20px;
+				}
+			</style>
+		</head>
+		<body>
+			<main class="container login-container">
+				<article>
+					<header style="text-align:center;">
+						<h3>Bienvenido</h3>
+					</header>
+					
+					<form action="/login" method="POST">
+						<label for="cabin_id">
+							Número de Cabaña (ID)
+							<input type="number" id="cabin_id" name="cabin_id" placeholder="Ej: 1" required/>
+						</label>
+						
+						<label for="password">
+							Contraseña
+							<input type="password" id="password" name="password" placeholder="Tu contraseña" required/>
+						</label>
+						
+						<button type="submit" class="contrast">Ingresar</button>
+					</form>
+
+				</article>
+			</main>
+		</body>
+	</html>
+}
