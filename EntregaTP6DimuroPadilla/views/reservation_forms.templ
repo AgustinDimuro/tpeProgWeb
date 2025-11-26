@@ -7,7 +7,7 @@ templ CreateReservationForm() {
             hx-post="/reservations" 
             hx-target="#reservation-list-container" 
             hx-swap="outerHTML"
-            hx-on::after-request="if(event.detail.successful) this.reset()">
+            hx-on::after-request="this.reset()">
             
         <div class="form-control">
             <label for="new-cabin-id">Cabin ID</label>
@@ -31,7 +31,7 @@ templ UpdateReservationForm() {
             hx-post="/reservations/update" 
             hx-target="#reservation-list-container" 
             hx-swap="outerHTML"
-            hx-on::after-request="if(event.detail.successful) this.reset()">
+            hx-on::after-request="this.reset()">
 
         <div class="form-control">
             <label for="update-cabin-id">Cabin ID</label>
