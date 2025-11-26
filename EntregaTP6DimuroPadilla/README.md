@@ -1,6 +1,6 @@
-# TPEProgWebEntregaTP5
+# TPEProgWebEntregaTP6
 
-En este repositorio se encontrará la resolución de los incisos solicitados para la entrega referente al **Trabajo Práctico Especial de Programación Web** en el **Trabajo Práctico 5**.  
+En este repositorio se encontrará la resolución de los incisos solicitados para la entrega referente al **Trabajo Práctico Especial de Programación Web** en el **Trabajo Práctico 6**.  
 
 Los integrantes del grupo son:  
 - Agustín Nicolás Dimuro  
@@ -8,12 +8,12 @@ Los integrantes del grupo son:
 
 ---
 
-## Descripción de resoluciones implementadas para el Trabajo Práctico 5
+## Descripción de resoluciones implementadas para el Trabajo Práctico 6
 
 ### Cambios en la arquitectura
 Como primer cambio estructural, decidimos adoptar la Onion Architecture con el objetivo de eliminar dependencias y reducir el fuerte acoplamiento de la logica de negocio con la tecnologias utilizadas, como la base de datos. Para lograr esto se establecieron las soguientes capas: Infraestructura, Aplicacion, Dominio y Entidades, asignando a cada una las responsabilidades necesarias para el correcto funcionamiento de la aplicacion.
 Adicionalmente, modificamos todos los handlers (ubicados en la cada de Infraestructura), para que ya no manejen JSON y en cambio utilicen templ para implementar Server-Side Rendering. Para que esto sea posible se crearon archivos .templ en la seccion de views que determinan los componentes principales de la pagina web, los cuales son utilizados por los handlers previamente mencionados para poder generar dinamicamente el HTML completo que va a ser enviado al usuario.
-
+Para cumplir con el objetivo principal de la última entrega, evolucionamos la aplicación utilizando HTMX para simplificar la interactividad del frontend, generando así una página dinámica que no requiere recargarse con cada actualización. Para lograrlo, implementamos la creación y actualización de reservas sin recargas mediante hx-post: al crear una reserva, el servidor devuelve únicamente el fragmento HTML con la lista actualizada en lugar de una redirección. Asimismo, aplicamos esta lógica a las eliminaciones; al borrar una reserva a través de hx-delete, la lista se actualiza eliminando el elemento correspondiente sin necesidad de refrescar la página completa.
 ---
 
 ### Aclaracion
@@ -53,15 +53,13 @@ Administrador:
    - Inicio de sesión exitoso y captura automática de la cookie de autenticación.
    - Acceso autorizado al Dashboard principal utilizando la sesión capturada.
    - Creación de una nueva reserva mediante envío de formulario.
-   - Verificación visual de que la reserva creada aparece renderizada en el HTML.
+   - Verificación de que la reserva creada aparece renderizada en el HTML.
    - Actualización de la fecha de la reserva existente.
    - Verificación de que la fecha vieja desaparece y la nueva se muestra correctamente.
    - Eliminación de la reserva del sistema.
    - Confirmación de que la reserva eliminada ya no se renderiza en el listado.
    - Carga correcta de la vista del calendario.
    - Navegación y filtrado del calendario por mes y año específicos.
-   - Acceso al listado general de reservas en la vista de administrador.
-   - Actualización de los datos de la cabaña (email, teléfono y contraseña).
    - Ejecución del logout e invalidación de la sesión.
    - Verificación de seguridad (bloqueo de acceso) al intentar entrar sin sesión.   
 

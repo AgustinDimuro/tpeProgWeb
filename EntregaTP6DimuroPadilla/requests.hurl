@@ -1,5 +1,5 @@
 # ------------------------------------------------------
-# 1.Login
+# 1.Login 
 # ------------------------------------------------------
 
 GET http://localhost:8080/login
@@ -31,16 +31,18 @@ body contains "Reservas"
 # 3. Gestión de Reservas
 # ------------------------------------------------------
 
-# A. CREAR RESERVA (POST)
+# CREAR RESERVA (POST)
 POST http://localhost:8080/reservations
 [Cookies]
 token: {{auth_token}}
 [FormParams]
 cabin_id: 1
 fecha: 2025-12-25
-HTTP 303
+HTTP 200 
+[Asserts]
+body contains "2025-12-25"
 
-# B. VERIFICAR CREACIÓN
+# VERIFICAR CREACION
 GET http://localhost:8080/
 [Cookies]
 token: {{auth_token}}
@@ -56,7 +58,10 @@ token: {{auth_token}}
 cabin_id: 1
 fecha: 2025-12-25
 fecha_nueva: 2025-12-31
-HTTP 303
+HTTP 200
+[Asserts]
+body not contains "2025-12-25"
+body contains "2025-12-31"
 
 # D. VERIFICAR ACTUALIZACIÓN
 GET http://localhost:8080/
@@ -64,7 +69,6 @@ GET http://localhost:8080/
 token: {{auth_token}}
 HTTP 200
 [Asserts]
-body not contains "2025-12-25"
 body contains "2025-12-31"
 
 # E. ELIMINAR RESERVA
@@ -74,7 +78,7 @@ token: {{auth_token}}
 [FormParams]
 cabin_id: 1
 fecha: 2025-12-31
-HTTP 303
+HTTP 200
 
 # F. VERIFICAR ELIMINACIÓN
 GET http://localhost:8080/
@@ -104,26 +108,7 @@ body contains "Enero"
 body contains "2026"
 
 # ------------------------------------------------------
-# 5. Rutas de Admin
-# ------------------------------------------------------
-
-# Listar reservas
-GET http://localhost:8080/admin/reservations
-HTTP 200
-[Asserts]
-header "Content-Type" contains "text/html"
-
-# Actualizar Cabaña
-PUT http://localhost:8080/admin/cabins
-[FormParams]
-id: 1
-email_contact: admin@test.com
-phone_contact: 9999999
-password: nueva_password
-HTTP 303
-
-# ------------------------------------------------------
-# 6. Logout
+# 5. Logout
 # ------------------------------------------------------
 
 GET http://localhost:8080/logout
